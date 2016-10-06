@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="gray">@android:color/darker_gray</color>
+    <color name="purple">#7A217F</color>
+    
+    <!-- Banner -->
+    <color name="grey">#EFEFF3</color>
+    <color name="orange">#E55C0F</color>
+
+</resources>

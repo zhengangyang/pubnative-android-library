@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="net.pubnative.library.tester"
-    android:versionCode="2"
-    android:versionName="1.2.1" >
+    android:versionCode="1"
+    android:versionName="1.0" >
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -16,10 +16,6 @@
         android:icon="@drawable/icon"
         android:label="@string/pubnative_demo"
         android:theme="@style/AppTheme" >
-
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
 
         <activity
             android:name=".activity.RequestActivity"

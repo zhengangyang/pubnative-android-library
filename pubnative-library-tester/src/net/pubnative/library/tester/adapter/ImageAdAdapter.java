@@ -27,20 +27,20 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 
-public class ImageAdAdapter extends AbstractAdHolderAdapter<ImageAdHolder> {
+public class ImageAdAdapter extends AbstractAdHolderAdapter<ImageAdHolder>
+{
+    public ImageAdAdapter(Context ctx)
+    {
+        super(ctx);
+    }
 
-	public ImageAdAdapter(Context ctx) {
-		super(ctx);
-	}
-
-	@Override
-	public ImageAdHolder makeAndAddHolder() {
-		View view = LayoutInflater.from(getContext()).inflate(
-				R.layout.view_response_image_format, null);
-		ImageAdHolder h = new ImageAdHolder(view);
-		h.imageViewId = R.id.view_img;
-		add(h);
-		return h;
-	}
-
+    @Override
+    public ImageAdHolder makeAndAddHolder()
+    {
+        View view = LayoutInflater.from(getContext()).inflate(R.layout.view_response_image_format, null);
+        ImageAdHolder h = new ImageAdHolder(view);
+        h.imageViewId = R.id.view_img;
+        add(h);
+        return h;
+    }
 }

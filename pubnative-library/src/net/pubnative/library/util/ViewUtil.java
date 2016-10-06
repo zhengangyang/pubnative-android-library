@@ -33,59 +33,64 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class ViewUtil {
+public class ViewUtil
+{
+    public static int getVisiblePercent(View v)
+    {
+        if (v.isShown())
+        {
+            Rect r = new Rect();
+            v.getGlobalVisibleRect(r);
+            double sVisible = r.width() * r.height();
+            double sTotal = v.getWidth() * v.getHeight();
+            return (int) (100 * sVisible / sTotal);
+        }
+        else
+        {
+            return -1;
+        }
+    }
 
-	public static int getVisiblePercent(View v) {
-		if (v.isShown()) {
-			Rect r = new Rect();
-			v.getGlobalVisibleRect(r);
-			double sVisible = r.width() * r.height();
-			double sTotal = v.getWidth() * v.getHeight();
-			return (int) (100 * sVisible / sTotal);
-		} else {
-			return -1;
-		}
-	}
+    public static Point getFullSceeenSize(Context ctx, MediaPlayer mediaPlayer)
+    {
+        DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
+        int videoW = mediaPlayer.getVideoWidth();
+        int videoH = mediaPlayer.getVideoHeight();
+        float screenW = dm.widthPixels;
+        float screenH = dm.heightPixels;
+        float scale = Math.min(screenW / videoW, screenH / videoH);
+        Point p = new Point();
+        p.x = (int) (videoW * scale);
+        p.y = (int) (videoH * scale);
+        return p;
+    }
 
-	public static Point getFullSceeenSize(Context ctx, MediaPlayer mediaPlayer) {
-		DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
+    public static void setSurface(final MediaPlayer mp, final TextureView tv)
+    {
+        SurfaceTexture st = tv.getSurfaceTexture();
+        if (st != null)
+        {
+            mp.setSurface(new Surface(st));
+        }
+        else
+        {
+            tv.setSurfaceTextureListener(new SurfaceTextureListenerAdapter()
+            {
+                @Override
+                public void onSurfaceTextureAvailable(SurfaceTexture st, int width, int height)
+                {
+                    tv.setSurfaceTextureListener(null);
+                    mp.setSurface(new Surface(st));
+                }
+            });
+        }
+    }
 
-		int videoW = mediaPlayer.getVideoWidth();
-		int videoH = mediaPlayer.getVideoHeight();
-
-		float screenW = dm.widthPixels;
-		float screenH = dm.heightPixels;
-
-		float scale = Math.min(screenW / videoW, screenH / videoH);
-
-		Point p = new Point();
-		p.x = (int) (videoW * scale);
-		p.y = (int) (videoH * scale);
-		return p;
-	}
-
-	public static void setSurface(final MediaPlayer mp, final TextureView tv) {
-		SurfaceTexture st = tv.getSurfaceTexture();
-		if (st != null) {
-			mp.setSurface(new Surface(st));
-		} else {
-			tv.setSurfaceTextureListener(new SurfaceTextureListenerAdapter() {
-
-				@Override
-				public void onSurfaceTextureAvailable(SurfaceTexture st,
-						int width, int height) {
-					tv.setSurfaceTextureListener(null);
-					mp.setSurface(new Surface(st));
-				}
-			});
-		}
-	}
-
-	public static void setSize(TextureView tv, int w, int h) {
-		ViewGroup.LayoutParams layoutParams = tv.getLayoutParams();
-		layoutParams.width = w;
-		layoutParams.height = h;
-		tv.setLayoutParams(layoutParams);
-	}
-
+    public static void setSize(TextureView tv, int w, int h)
+    {
+        ViewGroup.LayoutParams layoutParams = tv.getLayoutParams();
+        layoutParams.width = w;
+        layoutParams.height = h;
+        tv.setLayoutParams(layoutParams);
+    }
 }

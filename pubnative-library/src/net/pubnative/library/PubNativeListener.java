@@ -21,10 +21,9 @@
  */
 package net.pubnative.library;
 
-public interface PubNativeListener {
+public interface PubNativeListener
+{
+    void onLoaded();
 
-	void onLoaded();
-
-	void onError(Exception ex);
-
+    void onError(Exception ex);
 }

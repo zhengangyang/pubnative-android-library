@@ -22,62 +22,115 @@
 package net.pubnative.library.model.response;
 
 import net.pubnative.library.PubNativeContract;
+import net.pubnative.library.vast.VastAd;
 
 import org.droidparts.annotation.serialize.JSON;
+import org.droidparts.model.Model;
+import org.droidparts.persist.serializer.XMLSerializer;
+import org.droidparts.util.L;
+import org.w3c.dom.Node;
+
+import android.content.Context;
 
 public class NativeAd extends Ad implements
-		PubNativeContract.Response.NativeFormat {
-	private static final long serialVersionUID = 1L;
+        PubNativeContract.Response.NativeFormat
+{
+    private static final long serialVersionUID = 1L;
+    @JSON(key = TITLE)
+    public String             title;
+    @JSON(key = DESCRIPTION)
+    public String             description;
+    @JSON(key = ICON_URL)
+    public String             iconUrl;
+    @JSON(key = BANNER_URL)
+    public String             bannerUrl;
+    @JSON(key = PORTRAIT_BANNER_URL)
+    public String             portraitBannerUrl;
+    @JSON(key = CTA_TEXT)
+    public String             ctaText;
+    @JSON(key = APP_DETAILS + JSON.SUB + STORE_ID)
+    public String             storeId;
+    @JSON(key = APP_DETAILS + JSON.SUB + NAME, optional = true)
+    public String             name;
+    @JSON(key = APP_DETAILS + JSON.SUB + PLATFORM, optional = true)
+    public String             platform;
+    @JSON(key = APP_DETAILS + JSON.SUB + REVIEW, optional = true)
+    public String             review;
+    @JSON(key = APP_DETAILS + JSON.SUB + REVIEW_PROS, optional = true)
+    public String[]           reviewPros;
+    @JSON(key = APP_DETAILS + JSON.SUB + REVIEW_CONS, optional = true)
+    public String[]           reviewCons;
+    @JSON(key = APP_DETAILS + JSON.SUB + PUBLISHER, optional = true)
+    public String             publisher;
+    @JSON(key = APP_DETAILS + JSON.SUB + DEVELOPER, optional = true)
+    public String             developer;
+    @JSON(key = APP_DETAILS + JSON.SUB + VERSION, optional = true)
+    public String             version;
+    @JSON(key = APP_DETAILS + JSON.SUB + SIZE, optional = true)
+    public String             size;
+    @JSON(key = APP_DETAILS + JSON.SUB + AGE_RATING, optional = true)
+    public String             ageRating;
+    @JSON(key = APP_DETAILS + JSON.SUB + STORE_RATING, optional = true)
+    public float              storeRating;
+    @JSON(key = APP_DETAILS + JSON.SUB + CATEGORY, optional = true)
+    public String             category;
+    @JSON(key = APP_DETAILS + JSON.SUB + SUB_CATEGORY, optional = true)
+    public String             subCategory;
+    @JSON(key = APP_DETAILS + JSON.SUB + STORE_URL, optional = true)
+    public String             storeUrl;
+    @JSON(key = VAST, optional = true)
+    private Vast[]            vastAds;
 
-	@JSON(key = TITLE)
-	public String title;
+    public VastAd getVastAd(Context ctx)
+    {
+        if (vastAds.length == 1)
+        {
+            String txt = vastAds[0].ad;
+            try
+            {
+                Node doc = XMLSerializer.parseDocument(txt).getFirstChild();
+                return new XMLSerializer<VastAd>(VastAd.class, ctx).deserialize(doc);
+            }
+            catch (Exception e)
+            {
+                L.wtf(e);
+            }
+        }
+        return null;
+    }
 
-	@JSON(key = DESCRIPTION)
-	public String description;
+    public int getVideoSkipTime()
+    {
+        if (vastAds.length == 1)
+        {
+            return vastAds[0].videoSkipTime;
+        }
+        else
+        {
+            return -1;
+        }
+    }
 
-	@JSON(key = ICON_URL)
-	public String iconUrl;
+    public String getVideoSkipButton()
+    {
+        if (vastAds.length == 1)
+        {
+            return vastAds[0].videoSkipButton;
+        }
+        else
+        {
+            return null;
+        }
+    }
 
-	@JSON(key = BANNER_URL)
-	public String bannerUrl;
-	@JSON(key = PORTRAIT_BANNER_URL)
-	public String portraitBannerUrl;
-
-	@JSON(key = VIDEO_URL)
-	public String videoUrl;
-
-	@JSON(key = CTA_TEXT)
-	public String ctaText;
-
-	@JSON(key = APP_DETAILS + JSON.SUB + STORE_ID)
-	public String storeId;
-	@JSON(key = APP_DETAILS + JSON.SUB + NAME, optional = true)
-	public String name;
-	@JSON(key = APP_DETAILS + JSON.SUB + PLATFORM, optional = true)
-	public String platform;
-	@JSON(key = APP_DETAILS + JSON.SUB + REVIEW, optional = true)
-	public String review;
-	@JSON(key = APP_DETAILS + JSON.SUB + REVIEW_PROS, optional = true)
-	public String[] reviewPros;
-	@JSON(key = APP_DETAILS + JSON.SUB + REVIEW_CONS, optional = true)
-	public String[] reviewCons;
-	@JSON(key = APP_DETAILS + JSON.SUB + PUBLISHER, optional = true)
-	public String publisher;
-	@JSON(key = APP_DETAILS + JSON.SUB + DEVELOPER, optional = true)
-	public String developer;
-	@JSON(key = APP_DETAILS + JSON.SUB + VERSION, optional = true)
-	public String version;
-	@JSON(key = APP_DETAILS + JSON.SUB + SIZE, optional = true)
-	public String size;
-	@JSON(key = APP_DETAILS + JSON.SUB + AGE_RATING, optional = true)
-	public String ageRating;
-	@JSON(key = APP_DETAILS + JSON.SUB + STORE_RATING, optional = true)
-	public float storeRating;
-	@JSON(key = APP_DETAILS + JSON.SUB + CATEGORY, optional = true)
-	public String category;
-	@JSON(key = APP_DETAILS + JSON.SUB + SUB_CATEGORY, optional = true)
-	public String subCategory;
-	@JSON(key = APP_DETAILS + JSON.SUB + STORE_URL, optional = true)
-	public String storeUrl;
-
+    public static class Vast extends Model
+    {
+        private static final long serialVersionUID = 1L;
+        @JSON(key = AD)
+        public String             ad;
+        @JSON(key = VIDEO_SKIP_TIME)
+        public int                videoSkipTime;
+        @JSON(key = SKIP_VIDEO_BUTTON)
+        public String             videoSkipButton;
+    }
 }

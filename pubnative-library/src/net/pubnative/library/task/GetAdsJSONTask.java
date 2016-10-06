@@ -30,23 +30,22 @@ import org.json.JSONObject;
 
 import android.content.Context;
 
-public class GetAdsJSONTask extends SimpleAsyncTask<JSONObject> {
+public class GetAdsJSONTask extends SimpleAsyncTask<JSONObject>
+{
+    private final AdRequest   adRequest;
+    private final RESTClient2 restClient;
 
-	private final AdRequest adRequest;
-	private final RESTClient2 restClient;
+    public GetAdsJSONTask(Context ctx, AdRequest adRequest, AsyncTaskResultListener<JSONObject> resultListener)
+    {
+        super(ctx, resultListener);
+        this.adRequest = adRequest;
+        restClient = new RESTClient2(ctx);
+    }
 
-	public GetAdsJSONTask(Context ctx, AdRequest adRequest,
-			AsyncTaskResultListener<JSONObject> resultListener) {
-		super(ctx, resultListener);
-		this.adRequest = adRequest;
-		restClient = new RESTClient2(ctx);
-	}
-
-	@Override
-	protected JSONObject onExecute() throws Exception {
-		JSONObject resp = restClient.getJSONObject(adRequest.buildUri()
-				.toString());
-		return resp;
-	}
-
+    @Override
+    protected JSONObject onExecute() throws Exception
+    {
+        JSONObject resp = restClient.getJSONObject(adRequest.buildUri().toString());
+        return resp;
+    }
 }

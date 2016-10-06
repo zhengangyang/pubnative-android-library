@@ -36,51 +36,58 @@ import android.os.Bundle;
 import android.text.util.Linkify;
 import android.widget.TextView;
 
-public class RawResponseActivity extends AbstractResponseActivity {
+public class RawResponseActivity extends AbstractResponseActivity
+{
+    public static Intent getIntent(Context ctx, AdRequest req)
+    {
+        return getIntent(ctx, req, RawResponseActivity.class);
+    }
 
-	public static Intent getIntent(Context ctx, AdRequest req) {
-		return getIntent(ctx, req, RawResponseActivity.class);
-	}
+    @InjectView(id = R.id.view_text)
+    private TextView viewText;
 
-	@InjectView(id = R.id.view_text)
-	private TextView viewText;
+    @Override
+    public void onPreInject()
+    {
+        setContentView(R.layout.activity_raw_response);
+    }
 
-	@Override
-	public void onPreInject() {
-		setContentView(R.layout.activity_raw_response);
-	}
+    @Override
+    protected void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+        //
+        showLoading();
+        new GetAdsJSONTask(this, req, resultListener).execute();
+    }
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		//
-		showLoading();
-		new GetAdsJSONTask(this, req, resultListener).execute();
-	}
+    private final AsyncTaskResultListener<JSONObject> resultListener = new AsyncTaskResultListener<JSONObject>()
+                                                                     {
+                                                                         @Override
+                                                                         public void onAsyncTaskSuccess(JSONObject resp)
+                                                                         {
+                                                                             String jsonStr = "";
+                                                                             try
+                                                                             {
+                                                                                 jsonStr = resp.toString(2);
+                                                                             }
+                                                                             catch (JSONException e)
+                                                                             {
+                                                                                 // won't
+                                                                                 // happen
+                                                                             }
+                                                                             jsonStr = jsonStr.replace("\\/", "/");
+                                                                             viewText.setText(jsonStr);
+                                                                             Linkify.addLinks(viewText, Linkify.WEB_URLS);
+                                                                             //
+                                                                             dismissLoading(null);
+                                                                         }
 
-	private final AsyncTaskResultListener<JSONObject> resultListener = new AsyncTaskResultListener<JSONObject>() {
-
-		@Override
-		public void onAsyncTaskSuccess(JSONObject resp) {
-			String jsonStr = "";
-			try {
-				jsonStr = resp.toString(2);
-			} catch (JSONException e) {
-				// won't happen
-			}
-			jsonStr = jsonStr.replace("\\/", "/");
-			viewText.setText(jsonStr);
-			Linkify.addLinks(viewText, Linkify.WEB_URLS);
-			//
-			dismissLoading(null);
-		}
-
-		@Override
-		public void onAsyncTaskFailure(Exception ex) {
-			dismissLoading(ex);
-			finish();
-		}
-
-	};
-
+                                                                         @Override
+                                                                         public void onAsyncTaskFailure(Exception ex)
+                                                                         {
+                                                                             dismissLoading(ex);
+                                                                             finish();
+                                                                         }
+                                                                     };
 }

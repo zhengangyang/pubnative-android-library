@@ -21,34 +21,30 @@
  */
 package net.pubnative.library.model.holder;
 
-import net.pubnative.library.model.AdFormat;
+import net.pubnative.library.model.APIEndpoint;
 import net.pubnative.library.model.response.NativeAd;
 import android.view.View;
 
-public class NativeAdHolder extends AdHolder<NativeAd> {
+public class NativeAdHolder extends AdHolder<NativeAd>
+{
+    public NativeAdHolder(View view)
+    {
+        super(view);
+    }
 
-	public NativeAdHolder(View view) {
-		super(view);
-	}
+    public int iconViewId;
+    public int bannerViewId;
+    public int portraitBannerViewId;
+    public int ratingViewId;
+    public int titleViewId;
+    public int subTitleViewId;
+    public int descriptionViewId;
+    public int categoryViewId;
+    public int downloadViewId;
 
-	public int iconViewId;
-	public int bannerViewId;
-	public int portraitBannerViewId;
-
-	public int textureViewId;
-
-	public int ratingViewId;
-
-	public int titleViewId;
-	public int subTitleViewId;
-	public int descriptionViewId;
-	public int categoryViewId;
-
-	public int downloadViewId;
-
-	@Override
-	public AdFormat getFormat() {
-		return AdFormat.NATIVE;
-	}
-
+    @Override
+    public APIEndpoint getFormat()
+    {
+        return APIEndpoint.NATIVE;
+    }
 }

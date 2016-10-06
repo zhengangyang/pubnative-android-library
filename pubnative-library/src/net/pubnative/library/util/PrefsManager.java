@@ -25,21 +25,23 @@ import org.droidparts.persist.AbstractPrefsManager;
 
 import android.content.Context;
 
-public class PrefsManager extends AbstractPrefsManager {
+public class PrefsManager extends AbstractPrefsManager
+{
+    private static final int    VER    = 1;
+    private static final String ADV_ID = "adv_id";
 
-	private static final int VER = 1;
+    public PrefsManager(Context ctx)
+    {
+        super(ctx, VER);
+    }
 
-	private static final String ADV_ID = "adv_id";
+    public String getAdvId()
+    {
+        return getPreferences().getString(ADV_ID, "");
+    }
 
-	public PrefsManager(Context ctx) {
-		super(ctx, VER);
-	}
-
-	public String getAdvId() {
-		return getPreferences().getString(ADV_ID, "");
-	}
-
-	public void setAdvId(String id) {
-		saveString(ADV_ID, id);
-	}
+    public void setAdvId(String id)
+    {
+        saveString(ADV_ID, id);
+    }
 }

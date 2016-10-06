@@ -27,12 +27,10 @@ import org.droidparts.net.image.cache.BitmapMemoryCache;
 
 import android.content.Context;
 
-public class ImageFetcher extends
-		org.droidparts.net.image.ImageFetcher {
-
-	public ImageFetcher(Context ctx) {
-		super(ctx, new BackgroundThreadExecutor(2, "ImageFetcher-Fetch"),
-				new RESTClient(ctx), BitmapMemoryCache.getDefaultInstance(ctx),
-				null);
-	}
+public class ImageFetcher extends org.droidparts.net.image.ImageFetcher
+{
+    public ImageFetcher(Context ctx)
+    {
+        super(ctx, new BackgroundThreadExecutor(2, "ImageFetcher-Fetch"), new RESTClient(ctx), BitmapMemoryCache.getDefaultInstance(ctx), null);
+    }
 }

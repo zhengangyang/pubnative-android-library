@@ -34,37 +34,42 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 
-public class SendConfirmationTask extends SimpleAsyncTask<HTTPResponse> {
+public class SendConfirmationTask extends SimpleAsyncTask<HTTPResponse>
+{
+    private final RESTClient2 restClient;
+    private final Ad          ad;
 
-	private final RESTClient2 restClient;
-	private final Ad ad;
+    public SendConfirmationTask(Context ctx, AsyncTaskResultListener<HTTPResponse> resultListener, Ad ad)
+    {
+        super(ctx, resultListener);
+        restClient = new RESTClient2(ctx);
+        this.ad = ad;
+    }
 
-	public SendConfirmationTask(Context ctx,
-			AsyncTaskResultListener<HTTPResponse> resultListener, Ad ad) {
-		super(ctx, resultListener);
-		restClient = new RESTClient2(ctx);
-		this.ad = ad;
-	}
+    @Override
+    protected HTTPResponse onExecute() throws Exception
+    {
+        Uri.Builder bldr = Uri.parse(ad.getConfirmationUrl()).buildUpon();
+        if (ad instanceof NativeAd)
+        {
+            String pkgName = ((NativeAd) ad).storeId;
+            boolean installed = isPackageInstalled(pkgName);
+            bldr.appendQueryParameter("installed", installed ? "1" : "0");
+        }
+        return restClient.get(bldr.build().toString());
+    }
 
-	@Override
-	protected HTTPResponse onExecute() throws Exception {
-		Uri.Builder bldr = Uri.parse(ad.getConfirmationUrl()).buildUpon();
-		if (ad instanceof NativeAd) {
-			String pkgName = ((NativeAd) ad).storeId;
-			boolean installed = isPackageInstalled(pkgName);
-			bldr.appendQueryParameter("installed", installed ? "1" : "0");
-		}
-		return restClient.get(bldr.build().toString());
-	}
-
-	private boolean isPackageInstalled(String pkgName) {
-		PackageManager pm = getContext().getPackageManager();
-		try {
-			pm.getPackageInfo(pkgName, 0);
-			return true;
-		} catch (NameNotFoundException e) {
-			return false;
-		}
-	}
-
+    private boolean isPackageInstalled(String pkgName)
+    {
+        PackageManager pm = getContext().getPackageManager();
+        try
+        {
+            pm.getPackageInfo(pkgName, 0);
+            return true;
+        }
+        catch (NameNotFoundException e)
+        {
+            return false;
+        }
+    }
 }

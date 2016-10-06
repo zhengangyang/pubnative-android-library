@@ -1,3 +1,24 @@
+/**
+ * Copyright 2014 PubNative GmbH
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package net.pubnative.interstitials.widget;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
@@ -16,164 +37,188 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 
 public class AdCarouselView extends HorizontalScrollView implements
-		View.OnClickListener {
+        View.OnClickListener
+{
+    public interface Listener
+    {
+        void didClick(NativeAdHolder holder);
+    }
 
-	public interface Listener {
-		void didClick(NativeAdHolder holder);
-	}
+    private final LayoutInflater layoutInflater;
+    private final LinearLayout   containerView;
+    private NativeAdHolder[]     holders;
+    private Listener             listener;
 
-	private final LayoutInflater layoutInflater;
+    public AdCarouselView(Context context)
+    {
+        this(context, null);
+    }
 
-	private final LinearLayout containerView;
+    public AdCarouselView(Context ctx, AttributeSet attrs)
+    {
+        super(ctx, attrs);
+        layoutInflater = LayoutInflater.from(ctx);
+        containerView = new LinearLayout(ctx);
+        setHorizontalScrollBarEnabled(false);
+        setOverScrollMode(OVER_SCROLL_NEVER);
+        addView(containerView, new LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        gd = new GestureDetector(ctx, gl, null);
+    }
 
-	private NativeAdHolder[] holders;
+    public void setListener(Listener listener)
+    {
+        this.listener = listener;
+    }
 
-	private Listener listener;
+    @Override
+    public void onClick(View v)
+    {
+        for (int pos = 0; pos < containerView.getChildCount(); pos++)
+        {
+            View thumbView = containerView.getChildAt(pos);
+            if (v == thumbView)
+            {
+                NativeAdHolder holder = holders[pos];
+                if (listener != null)
+                {
+                    listener.didClick(holder);
+                }
+                break;
+            }
+        }
+    }
 
-	public AdCarouselView(Context context) {
-		this(context, null);
-	}
+    public NativeAdHolder[] createAndAddHolders(int count)
+    {
+        holders = new NativeAdHolder[count];
+        containerView.removeAllViews();
+        for (int idx = 0; idx < count; idx++)
+        {
+            View view = layoutInflater.inflate(R.layout.pn_view_carousel_item, null);
+            view.setOnClickListener(this);
+            containerView.addView(view, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+            //
+            NativeAdHolder holder = new NativeAdHolder(view);
+            holder.bannerViewId = R.id.view_banner;
+            holder.iconViewId = R.id.view_icon;
+            holder.titleViewId = R.id.view_title;
+            holder.ratingViewId = R.id.view_rating;
+            holder.downloadViewId = R.id.view_download;
+            holders[idx] = holder;
+        }
+        requestLayout();
+        return holders;
+    }
 
-	public AdCarouselView(Context ctx, AttributeSet attrs) {
-		super(ctx, attrs);
-		layoutInflater = LayoutInflater.from(ctx);
-		containerView = new LinearLayout(ctx);
-		setHorizontalScrollBarEnabled(false);
-		setOverScrollMode(OVER_SCROLL_NEVER);
-		addView(containerView, new LayoutParams(MATCH_PARENT, MATCH_PARENT));
-		gd = new GestureDetector(ctx, gl, null);
-	}
+    //
+    @Override
+    public boolean onTouchEvent(MotionEvent ev)
+    {
+        if (gd.onTouchEvent(ev))
+        {
+            return true;
+        }
+        else
+        {
+            switch (ev.getAction())
+            {
+            case MotionEvent.ACTION_MOVE:
+                if (firstTouchX == -1)
+                {
+                    firstTouchX = (int) ev.getRawX();
+                }
+            break;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                swipeLength = (int) (firstTouchX - ev.getRawX());
+                firstTouchX = -1;
+                setCurrHolder();
+                scrollToCurrHolder();
+                return true;
+            }
+            return super.onTouchEvent(ev);
+        }
+    }
 
-	public void setListener(Listener listener) {
-		this.listener = listener;
-	}
+    @Override
+    protected void onConfigurationChanged(Configuration newConfig)
+    {
+        super.onConfigurationChanged(newConfig);
+        postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                scrollToCurrHolder();
+            }
+        }, 100);
+    }
 
-	@Override
-	public void onClick(View v) {
-		for (int pos = 0; pos < containerView.getChildCount(); pos++) {
-			View thumbView = containerView.getChildAt(pos);
-			if (v == thumbView) {
-				NativeAdHolder holder = holders[pos];
-				if (listener != null) {
-					listener.didClick(holder);
-				}
-				break;
-			}
-		}
-	}
+    private int firstTouchX = -1;
+    private int swipeLength;
+    private int currHolder  = 0;
 
-	public NativeAdHolder[] createAndAddHolders(int count) {
-		holders = new NativeAdHolder[count];
-		containerView.removeAllViews();
-		for (int idx = 0; idx < count; idx++) {
-			View view = layoutInflater.inflate(R.layout.pn_view_carousel_item,
-					null);
-			view.setOnClickListener(this);
-			containerView.addView(view, new LayoutParams(WRAP_CONTENT,
-					WRAP_CONTENT));
-			//
-			NativeAdHolder holder = new NativeAdHolder(view);
-			holder.bannerViewId = R.id.view_banner;
-			holder.iconViewId = R.id.view_icon;
-			holder.titleViewId = R.id.view_title;
-			holder.ratingViewId = R.id.view_rating;
-			holder.downloadViewId = R.id.view_download;
-			holders[idx] = holder;
-		}
-		requestLayout();
-		return holders;
-	}
+    private void setCurrHolder()
+    {
+        int scrollPosition = getScrollX();
+        int screenWidth = getMeasuredWidth();
+        int holderWidth = containerView.getChildAt(0).getMeasuredWidth();
+        int lastHolder = containerView.getChildCount() - 1;
+        int containerWidth = containerView.getMeasuredWidth();
+        boolean screenEnd = (scrollPosition == (containerWidth - screenWidth));
+        if (screenEnd)
+        {
+            currHolder = lastHolder;
+        }
+        else
+        {
+            int step = (swipeLength > 0) ? holderWidth : holderWidth / 2;
+            currHolder = (scrollPosition + step) / holderWidth;
+        }
+    }
 
-	//
+    private void scrollToCurrHolder()
+    {
+        int screenWidth = getMeasuredWidth();
+        int holderWidth = containerView.getChildAt(0).getMeasuredWidth();
+        int lastHolder = containerView.getChildCount() - 1;
+        int containerWidth = containerView.getMeasuredWidth();
+        int scrollTo;
+        if (currHolder <= 0)
+        {
+            currHolder = 0;
+            scrollTo = 0;
+        }
+        else
+            if (currHolder >= lastHolder)
+            {
+                currHolder = lastHolder;
+                scrollTo = containerWidth - holderWidth;
+            }
+            else
+            {
+                scrollTo = currHolder * holderWidth - (screenWidth - holderWidth) / 2;
+            }
+        smoothScrollTo(scrollTo, 0);
+    }
 
-	@Override
-	public boolean onTouchEvent(MotionEvent ev) {
-		if (gd.onTouchEvent(ev)) {
-			return true;
-		} else {
-			switch (ev.getAction()) {
-			case MotionEvent.ACTION_MOVE:
-				if (firstTouchX == -1) {
-					firstTouchX = (int) ev.getRawX();
-				}
-				break;
-			case MotionEvent.ACTION_UP:
-			case MotionEvent.ACTION_CANCEL:
-				swipeLength = (int) (firstTouchX - ev.getRawX());
-				firstTouchX = -1;
-				setCurrHolder();
-				scrollToCurrHolder();
-				return true;
-			}
-			return super.onTouchEvent(ev);
-		}
-	}
-
-	@Override
-	protected void onConfigurationChanged(Configuration newConfig) {
-		super.onConfigurationChanged(newConfig);
-		postDelayed(new Runnable() {
-
-			@Override
-			public void run() {
-				scrollToCurrHolder();
-			}
-		}, 100);
-	}
-
-	private int firstTouchX = -1;
-	private int swipeLength;
-
-	private int currHolder = 0;
-
-	private void setCurrHolder() {
-		int scrollPosition = getScrollX();
-		int screenWidth = getMeasuredWidth();
-		int holderWidth = containerView.getChildAt(0).getMeasuredWidth();
-		int lastHolder = containerView.getChildCount() - 1;
-		int containerWidth = containerView.getMeasuredWidth();
-		boolean screenEnd = (scrollPosition == (containerWidth - screenWidth));
-		if (screenEnd) {
-			currHolder = lastHolder;
-		} else {
-			int step = (swipeLength > 0) ? holderWidth : holderWidth / 2;
-			currHolder = (scrollPosition + step) / holderWidth;
-		}
-	}
-
-	private void scrollToCurrHolder() {
-		int screenWidth = getMeasuredWidth();
-		int holderWidth = containerView.getChildAt(0).getMeasuredWidth();
-		int lastHolder = containerView.getChildCount() - 1;
-		int containerWidth = containerView.getMeasuredWidth();
-		int scrollTo;
-		if (currHolder <= 0) {
-			currHolder = 0;
-			scrollTo = 0;
-		} else if (currHolder >= lastHolder) {
-			currHolder = lastHolder;
-			scrollTo = containerWidth - holderWidth;
-		} else {
-			scrollTo = currHolder * holderWidth - (screenWidth - holderWidth)
-					/ 2;
-		}
-		smoothScrollTo(scrollTo, 0);
-	}
-
-	private GestureDetector gd;
-	private final GestureDetector.OnGestureListener gl = new SimpleOnGestureListener() {
-		@Override
-		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
-				float velocityY) {
-			boolean right = (velocityX < 0);
-			if (right) {
-				currHolder++;
-			} else {
-				currHolder--;
-			}
-			scrollToCurrHolder();
-			return true;
-		}
-	};
-
+    private GestureDetector                         gd;
+    private final GestureDetector.OnGestureListener gl = new SimpleOnGestureListener()
+                                                       {
+                                                           @Override
+                                                           public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
+                                                           {
+                                                               boolean right = (velocityX < 0);
+                                                               if (right)
+                                                               {
+                                                                   currHolder++;
+                                                               }
+                                                               else
+                                                               {
+                                                                   currHolder--;
+                                                               }
+                                                               scrollToCurrHolder();
+                                                               return true;
+                                                           }
+                                                       };
 }

@@ -35,54 +35,55 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
-public abstract class AbstractResponseActivity extends Activity {
+public abstract class AbstractResponseActivity extends Activity
+{
+    private static final String AD_REQUEST = "ad_request";
+    @InjectBundleExtra(key = AD_REQUEST)
+    protected AdRequest         req;
 
-	private static final String AD_REQUEST = "ad_request";
+    protected static Intent getIntent(Context ctx, AdRequest req, Class<? extends AbstractResponseActivity> cls)
+    {
+        Intent intent = new Intent(ctx, cls);
+        intent.putExtra(AD_REQUEST, req);
+        return intent;
+    }
 
-	@InjectBundleExtra(key = AD_REQUEST)
-	protected AdRequest req;
+    @Override
+    protected void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+        setTitle(getTitle() + " - " + getString(R.string.response));
+    }
 
-	protected static Intent getIntent(Context ctx, AdRequest req,
-			Class<? extends AbstractResponseActivity> cls) {
-		Intent intent = new Intent(ctx, cls);
-		intent.putExtra(AD_REQUEST, req);
-		return intent;
-	}
+    //
+    private ProgressDialog loadingDialog;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setTitle(getTitle() + " - " + getString(R.string.response));
-	}
+    protected final void showLoading()
+    {
+        dismissLoading(null);
+        loadingDialog = ProgressDialog.show(this, null, getString(R.string.loading___), true);
+        loadingDialog.setCancelable(true);
+        loadingDialog.setOnCancelListener(new OnCancelListener()
+        {
+            @Override
+            public void onCancel(DialogInterface dialog)
+            {
+                finish();
+            }
+        });
+    }
 
-	//
-
-	private ProgressDialog loadingDialog;
-
-	protected final void showLoading() {
-		dismissLoading(null);
-		loadingDialog = ProgressDialog.show(this, null,
-				getString(R.string.loading___), true);
-		loadingDialog.setCancelable(true);
-		loadingDialog.setOnCancelListener(new OnCancelListener() {
-
-			@Override
-			public void onCancel(DialogInterface dialog) {
-				finish();
-			}
-		});
-	}
-
-	protected final void dismissLoading(Exception ex) {
-		if (loadingDialog != null) {
-			loadingDialog.dismiss();
-			if (ex != null) {
-				Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG).show();
-			}
-		}
-		loadingDialog = null;
-	}
-
-	//
-
+    protected final void dismissLoading(Exception ex)
+    {
+        if (loadingDialog != null)
+        {
+            loadingDialog.dismiss();
+            if (ex != null)
+            {
+                Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }
+        loadingDialog = null;
+    }
+    //
 }

@@ -44,91 +44,104 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.RadioButton;
 
-public class RenderedResponseActivity extends AbstractResponseActivity
-		implements PubNativeContract, OnItemClickListener {
+public class RenderedResponseActivity extends AbstractResponseActivity implements
+        PubNativeContract,
+        OnItemClickListener
+{
+    public static Intent getIntent(Context ctx, AdRequest req)
+    {
+        return getIntent(ctx, req, RenderedResponseActivity.class);
+    }
 
-	public static Intent getIntent(Context ctx, AdRequest req) {
-		return getIntent(ctx, req, RenderedResponseActivity.class);
-	}
+    @InjectView(id = R.id.rb_redirect_background)
+    private RadioButton                                    backgroundRedirectRB;
+    @InjectView(id = R.id.rb_redirect_browser)
+    private RadioButton                                    browserRedirectRB;
+    @InjectView(id = android.R.id.list)
+    private ListView                                       listView;
+    private AbstractAdHolderAdapter<? extends AdHolder<?>> adapter;
 
-	@InjectView(id = R.id.rb_redirect_background)
-	private RadioButton backgroundRedirectRB;
-	@InjectView(id = R.id.rb_redirect_browser)
-	private RadioButton browserRedirectRB;
+    @Override
+    public void onPreInject()
+    {
+        setContentView(R.layout.activity_rendered_response);
+    }
 
-	@InjectView(id = android.R.id.list)
-	private ListView listView;
+    @Override
+    protected void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+        showLoading();
+        if (req.getAdFormat() == AdFormat.NATIVE)
+        {
+            adapter = new NativeAdAdapter(this);
+        }
+        else
+        {
+            adapter = new ImageAdAdapter(this);
+        }
+        backgroundRedirectRB.setChecked(true);
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(this);
+        //
+        int count = Integer.valueOf(req.getParam(RequestInfo.AD_COUNT));
+        AdHolder<Ad>[] holders = new AdHolder[count];
+        for (int i = 0; i < count; i++)
+        {
+            holders[i] = (AdHolder<Ad>) adapter.makeAndAddHolder();
+        }
+        PubNative.setListener(listener);
+        PubNative.showAd(req, holders);
+    }
 
-	private AbstractAdHolderAdapter<? extends AdHolder<?>> adapter;
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        PubNative.onPause();
+    }
 
-	@Override
-	public void onPreInject() {
-		setContentView(R.layout.activity_rendered_response);
-	}
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        PubNative.onResume();
+    }
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		showLoading();
-		if (req.getAdFormat() == AdFormat.NATIVE) {
-			adapter = new NativeAdAdapter(this);
-		} else {
-			adapter = new ImageAdAdapter(this);
-		}
-		backgroundRedirectRB.setChecked(true);
-		listView.setAdapter(adapter);
-		listView.setOnItemClickListener(this);
-		//
-		int count = Integer.valueOf(req.getParam(RequestInfo.AD_COUNT));
-		AdHolder<Ad>[] holders = new AdHolder[count];
-		for (int i = 0; i < count; i++) {
-			holders[i] = (AdHolder<Ad>) adapter.makeAndAddHolder();
-		}
-		PubNative.setListener(listener);
-		PubNative.showAd(req, holders);
-	}
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        PubNative.onDestroy();
+    }
 
-	@Override
-	protected void onPause() {
-		super.onPause();
-		PubNative.onPause();
-	}
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+    {
+        Ad ad = adapter.getItem(position).ad;
+        boolean background = backgroundRedirectRB.isChecked();
+        if (background)
+        {
+            PubNative.showInPlayStoreViaDialog(this, ad);
+        }
+        else
+        {
+            PubNative.showInPlayStoreViaBrowser(this, ad);
+        }
+    }
 
-	@Override
-	protected void onResume() {
-		super.onResume();
-		PubNative.onResume();
-	}
+    private final PubNativeListener listener = new PubNativeListener()
+                                             {
+                                                 @Override
+                                                 public void onLoaded()
+                                                 {
+                                                     dismissLoading(null);
+                                                 }
 
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		PubNative.onDestroy();
-	}
-
-	@Override
-	public void onItemClick(AdapterView<?> parent, View view, int position,
-			long id) {
-		Ad ad = adapter.getItem(position).ad;
-		boolean background = backgroundRedirectRB.isChecked();
-		if (background) {
-			PubNative.showInPlayStoreViaDialog(this, ad);
-		} else {
-			PubNative.showInPlayStoreViaBrowser(this, ad);
-		}
-	}
-
-	private final PubNativeListener listener = new PubNativeListener() {
-
-		@Override
-		public void onLoaded() {
-			dismissLoading(null);
-		}
-
-		@Override
-		public void onError(Exception ex) {
-			dismissLoading(ex);
-		}
-	};
-
+                                                 @Override
+                                                 public void onError(Exception ex)
+                                                 {
+                                                     dismissLoading(ex);
+                                                 }
+                                             };
 }

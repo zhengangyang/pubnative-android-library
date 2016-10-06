@@ -30,17 +30,18 @@ import android.view.View;
 import android.view.ViewGroup;
 
 public abstract class AbstractAdHolderAdapter<T extends AdHolder<?>> extends
-		ArrayAdapter<T> {
+        ArrayAdapter<T>
+{
+    public AbstractAdHolderAdapter(Context ctx)
+    {
+        super(ctx);
+    }
 
-	public AbstractAdHolderAdapter(Context ctx) {
-		super(ctx);
-	}
+    public abstract T makeAndAddHolder();
 
-	public abstract T makeAndAddHolder();
-
-	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
-		return getItem(position).getView();
-	}
-
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent)
+    {
+        return getItem(position).getView();
+    }
 }

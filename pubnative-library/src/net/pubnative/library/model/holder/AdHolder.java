@@ -21,40 +21,45 @@
  */
 package net.pubnative.library.model.holder;
 
-import net.pubnative.library.model.AdFormat;
+import net.pubnative.library.model.APIEndpoint;
 import net.pubnative.library.model.response.Ad;
 
 import org.droidparts.util.L;
 
 import android.view.View;
 
-public abstract class AdHolder<T extends Ad> {
+public abstract class AdHolder<T extends Ad>
+{
+    public T           ad;
+    private final View view;
 
-	public T ad;
+    public AdHolder(View view)
+    {
+        this.view = view;
+    }
 
-	private View view;
+    public View getView()
+    {
+        return view;
+    }
 
-	public AdHolder(View view) {
-		this.view = view;
-	}
+    @SuppressWarnings("unchecked")
+    public <V extends View> V getView(int id)
+    {
+        View v = getView();
+        if (v != null)
+        {
+            try
+            {
+                return (V) v.findViewById(id);
+            }
+            catch (ClassCastException e)
+            {
+                L.e(e);
+            }
+        }
+        return null;
+    }
 
-	public View getView() {
-		return view;
-	}
-
-	@SuppressWarnings("unchecked")
-	public <V extends View> V getView(int id) {
-		View v = getView();
-		if (v != null) {
-			try {
-				return (V) v.findViewById(id);
-			} catch (ClassCastException e) {
-				L.e(e);
-			}
-		}
-		return null;
-	}
-
-	public abstract AdFormat getFormat();
-
+    public abstract APIEndpoint getFormat();
 }

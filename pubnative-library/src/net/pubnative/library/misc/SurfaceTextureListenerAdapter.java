@@ -25,20 +25,19 @@ import android.graphics.SurfaceTexture;
 import android.view.TextureView.SurfaceTextureListener;
 
 public abstract class SurfaceTextureListenerAdapter implements
-		SurfaceTextureListener {
+        SurfaceTextureListener
+{
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height)
+    {}
 
-	@Override
-	public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width,
-			int height) {
-	}
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface)
+    {
+        return true;
+    }
 
-	@Override
-	public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-		return true;
-	}
-
-	@Override
-	public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-	}
-
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface)
+    {}
 }

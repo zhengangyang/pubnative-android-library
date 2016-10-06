@@ -27,39 +27,39 @@ import org.droidparts.annotation.serialize.JSON;
 import org.droidparts.model.Model;
 
 public abstract class Ad extends Model implements
-		PubNativeContract.Response.Format {
-	private static final long serialVersionUID = 1L;
+        PubNativeContract.Response.Format
+{
+    private static final long serialVersionUID = 1L;
+    @JSON(key = TYPE)
+    public String             type;
+    @JSON(key = CLICK_URL)
+    public String             clickUrl;
+    @JSON(key = BEACONS)
+    private Beacon[]          beacons;
 
-	@JSON(key = TYPE)
-	public String type;
+    public String getPackageName()
+    {
+        if (this instanceof NativeAd)
+        {
+            return ((NativeAd) this).storeId;
+        }
+        else
+        {
+            return null;
+        }
+    }
 
-	@JSON(key = CLICK_URL)
-	public String clickUrl;
+    public String getConfirmationUrl()
+    {
+        return (beacons.length == 1) ? beacons[0].url : null;
+    }
 
-	@JSON(key = BEACONS)
-	private Beacon[] beacons;
-
-	public String getPackageName() {
-		if (this instanceof NativeAd) {
-			return ((NativeAd) this).storeId;
-		} else if (this instanceof ImageAd) {
-			return ((ImageAd) this).storeId;
-		} else {
-			return null;
-		}
-	}
-
-	public String getConfirmationUrl() {
-		return (beacons.length == 1) ? beacons[0].url : null;
-	}
-
-	public static class Beacon extends Model {
-		private static final long serialVersionUID = 1L;
-
-		@JSON(key = TYPE)
-		public String type;
-		@JSON(key = URL)
-		public String url;
-	}
-
+    public static class Beacon extends Model
+    {
+        private static final long serialVersionUID = 1L;
+        @JSON(key = TYPE)
+        public String             type;
+        @JSON(key = URL)
+        public String             url;
+    }
 }

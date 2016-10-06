@@ -27,38 +27,41 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.DisplayMetrics;
 
-public class DensityReshaper extends AbstractImageReshaper {
+public class DensityReshaper extends AbstractImageReshaper
+{
+    private final float ratio;
 
-	private final float ratio;
+    /**
+     * @see DisplayMetrics
+     */
+    public DensityReshaper(Context ctx, int baseDensityDpi)
+    {
+        ratio = (float) ctx.getResources().getDisplayMetrics().densityDpi / baseDensityDpi;
+    }
 
-	/**
-	 * @see DisplayMetrics
-	 */
-	public DensityReshaper(Context ctx, int baseDensityDpi) {
-		ratio = (float) ctx.getResources().getDisplayMetrics().densityDpi
-				/ baseDensityDpi;
-	}
+    @Override
+    public Bitmap reshape(Bitmap bm)
+    {
+        int w = (int) (bm.getWidth() * ratio);
+        int h = (int) (bm.getHeight() * ratio);
+        return Bitmap.createScaledBitmap(bm, w, h, true);
+    }
 
-	@Override
-	public Bitmap reshape(Bitmap bm) {
-		int w = (int) (bm.getWidth() * ratio);
-		int h = (int) (bm.getHeight() * ratio);
-		return Bitmap.createScaledBitmap(bm, w, h, true);
-	}
+    @Override
+    public String getCacheId()
+    {
+        return "x" + ratio;
+    }
 
-	@Override
-	public String getCacheId() {
-		return "x" + ratio;
-	}
+    @Override
+    public int getImageHeightHint()
+    {
+        return 0;
+    }
 
-	@Override
-	public int getImageHeightHint() {
-		return 0;
-	}
-
-	@Override
-	public int getImageWidthHint() {
-		return 0;
-	}
-
+    @Override
+    public int getImageWidthHint()
+    {
+        return 0;
+    }
 }

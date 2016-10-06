@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp" >
+
+        <ImageView
+            android:id="@+id/pn_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerHorizontal="false"
+            android:src="@drawable/logo_bw" />
+
+        <TextView
+            android:id="@+id/btn_download"
+            style="@style/AL_DownloadButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/pn_logo"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp" />
+
+        <RelativeLayout
+            android:id="@+id/view_info_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/btn_download"
+            android:layout_margin="10dp" >
+
+            <ImageView
+                android:id="@+id/view_icon"
+                android:layout_width="@dimen/icon_size"
+                android:layout_height="@dimen/icon_size"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="5dp"
+                android:adjustViewBounds="true"
+                android:background="@color/pn_btn_green" />
+
+            <TextView
+                android:id="@+id/view_title"
+                style="@android:style/TextAppearance.Large.Inverse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/view_rating"
+                android:layout_alignParentRight="true"
+                android:layout_alignTop="@id/view_icon"
+                android:layout_toRightOf="@id/view_icon"
+                android:lines="1"
+                android:maxLines="1"
+                android:textSize="20sp" />
+
+            <RatingBar
+                android:id="@+id/view_rating"
+                style="?android:attr/ratingBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/view_icon"
+                android:layout_marginBottom="5dp"
+                android:layout_toRightOf="@id/view_icon"
+                android:isIndicator="true" />
+
+            <TextView
+                android:id="@+id/view_description"
+                style="@style/AL_DailyInfoBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="false"
+                android:layout_below="@id/view_icon"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp" />
+        </RelativeLayout>
+
+        <ImageView
+            android:id="@+id/view_game_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/view_info_container"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter" />
+    </RelativeLayout>
+
+</merge>

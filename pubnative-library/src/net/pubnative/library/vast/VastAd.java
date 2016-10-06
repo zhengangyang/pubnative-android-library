@@ -28,43 +28,44 @@ import net.pubnative.library.vast.Creative.TrackingEvent;
 import org.droidparts.annotation.serialize.XML;
 import org.droidparts.model.Model;
 
-public class VastAd extends Model {
-	private static final long serialVersionUID = 1L;
+public class VastAd extends Model
+{
+    private static final long serialVersionUID = 1L;
 
-	//
+    //
+    public String getVideoUrl()
+    {
+        return creatives.get(0).mediaFiles.get(0).url;
+    }
 
-	public String getVideoUrl() {
-		return creatives.get(0).mediaFiles.get(0).url;
-	}
+    public String getImpressionUrl()
+    {
+        return impressionUrl;
+    }
 
-	public String getImpressionUrl() {
-		return impressionUrl;
-	}
+    public String getEventUrl(VastEvent ev)
+    {
+        Creative cr = creatives.get(0);
+        for (TrackingEvent te : cr.trackingEvents)
+        {
+            if (ev.key.equals(te.event))
+            {
+                return te.url;
+            }
+        }
+        return null;
+    }
 
-	public String getEventUrl(VastEvent ev) {
-		Creative cr = creatives.get(0);
-		for (TrackingEvent te : cr.trackingEvents) {
-			if (ev.key.equals(te.event)) {
-				return te.url;
-			}
-		}
-		return null;
-	}
-
-	//
-
-	private static final String BASE = "Ad" + XML.SUB + "InLine" + XML.SUB;
-
-	@XML(tag = "Ad", attribute = "id")
-	public long id;
-	@XML(tag = BASE + "AdTitle")
-	public String title;
-	@XML(tag = BASE + "Description")
-	public String description;
-	@XML(tag = BASE + "Impression")
-	public String impressionUrl;
-
-	@XML(tag = BASE + "Creatives", attribute = "Creative")
-	public ArrayList<Creative> creatives;
-
+    //
+    private static final String BASE = "Ad" + XML.SUB + "InLine" + XML.SUB;
+    @XML(tag = "Ad", attribute = "id")
+    public long                 id;
+    @XML(tag = BASE + "AdTitle")
+    public String               title;
+    @XML(tag = BASE + "Description")
+    public String               description;
+    @XML(tag = BASE + "Impression")
+    public String               impressionUrl;
+    @XML(tag = BASE + "Creatives", attribute = "Creative")
+    public ArrayList<Creative>  creatives;
 }

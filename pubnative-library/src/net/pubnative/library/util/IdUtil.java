@@ -32,65 +32,76 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.webkit.WebView;
 
-public class IdUtil {
+public class IdUtil
+{
+    public interface Callback
+    {
+        void didGetAdvId(String advId);
+    }
 
-	public interface Callback {
-		void didGetAdvId(String advId);
-	}
+    public static String getPackageName(Context ctx)
+    {
+        PackageInfo pInfo = getPackageInfo(ctx);
+        return (pInfo != null) ? pInfo.packageName : "";
+    }
 
-	public static String getPackageName(Context ctx) {
-		PackageInfo pInfo = getPackageInfo(ctx);
-		return (pInfo != null) ? pInfo.packageName : "";
-	}
+    private static PackageInfo getPackageInfo(Context ctx)
+    {
+        try
+        {
+            return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
+        }
+        catch (NameNotFoundException e)
+        {
+            L.w("Error getting package info.");
+            return null;
+        }
+    }
 
-	private static PackageInfo getPackageInfo(Context ctx) {
-		try {
-			return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(),
-					0);
-		} catch (NameNotFoundException e) {
-			L.w("Error getting package info.");
-			return null;
-		}
-	}
+    public static void getAdvertisingId(final Context ctx, final Callback call)
+    {
+        new Thread()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    Class<?> cls = Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient");
+                    Method m = cls.getMethod("getAdvertisingIdInfo", Context.class);
+                    Object adInfo = m.invoke(null, ctx);
+                    m = adInfo.getClass().getMethod("getId");
+                    String advId = (String) m.invoke(adInfo);
+                    call.didGetAdvId(advId);
+                }
+                catch (Exception e)
+                {
+                    L.v(e);
+                }
+            }
+        }.start();
+    }
 
-	public static void getAdvertisingId(final Context ctx, final Callback call) {
-		new Thread() {
-			@Override
-			public void run() {
-				try {
-					Class<?> cls = Class
-							.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient");
-					Method m = cls.getMethod("getAdvertisingIdInfo",
-							Context.class);
-					Object adInfo = m.invoke(null, ctx);
-					m = adInfo.getClass().getMethod("getId");
-					String advId = (String) m.invoke(adInfo);
-					call.didGetAdvId(advId);
-				} catch (Exception e) {
-					L.v(e);
-				}
-			}
-		}.start();
-	}
+    public static Location getLastLocation(Context ctx)
+    {
+        LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
+        Location loc = null;
+        for (String prov : lm.getProviders(true))
+        {
+            loc = lm.getLastKnownLocation(prov);
+            if (loc != null)
+            {
+                break;
+            }
+        }
+        return loc;
+    }
 
-	public static Location getLastLocation(Context ctx) {
-		LocationManager lm = (LocationManager) ctx
-				.getSystemService(Context.LOCATION_SERVICE);
-		Location loc = null;
-		for (String prov : lm.getProviders(true)) {
-			loc = lm.getLastKnownLocation(prov);
-			if (loc != null) {
-				break;
-			}
-		}
-		return loc;
-	}
+    public static String getUserAgent(Context ctx)
+    {
+        return new WebView(ctx).getSettings().getUserAgentString();
+    }
 
-	public static String getUserAgent(Context ctx) {
-		return new WebView(ctx).getSettings().getUserAgentString();
-	}
-
-	private IdUtil() {
-	}
-
+    private IdUtil()
+    {}
 }

@@ -38,94 +38,105 @@ import android.location.Location;
 import android.os.Build;
 import android.util.DisplayMetrics;
 
-public class KeyUtil {
+public class KeyUtil
+{
+    private static String[] keys;
 
-	private static String[] keys;
+    public static String[] getAdRequestKeys()
+    {
+        if (keys == null)
+        {
+            ArrayList<String> list = new ArrayList<>();
+            for (Class<?> cl : new Class<?>[]
+            { RequestInfo.class, UserIdentifier.class })
+            {
+                for (Field f : cl.getFields())
+                {
+                    Object val;
+                    try
+                    {
+                        val = f.get(null);
+                        if (val instanceof String)
+                        {
+                            list.add((String) val);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        L.w(e);
+                    }
+                }
+            }
+            keys = list.toArray(new String[list.size()]);
+        }
+        return keys;
+    }
 
-	public static String[] getAdRequestKeys() {
-		if (keys == null) {
-			ArrayList<String> list = new ArrayList<>();
-			for (Class<?> cl : new Class<?>[] { RequestInfo.class,
-					UserIdentifier.class }) {
-				for (Field f : cl.getFields()) {
-					Object val;
-					try {
-						val = f.get(null);
-						if (val instanceof String) {
-							list.add((String) val);
-						}
-					} catch (Exception e) {
-						L.w(e);
-					}
-				}
-			}
-			keys = list.toArray(new String[list.size()]);
-		}
-		return keys;
-	}
+    public static String putDefaultVal(Context ctx, String key)
+    {
+        switch (key)
+        {
+        case RequestInfo.BUNDLE_ID:
+            return IdUtil.getPackageName(ctx);
+        case RequestInfo.USER_AGENT:
+            return IdUtil.getUserAgent(ctx);
+        case RequestInfo.OS:
+            return "android";
+        case RequestInfo.OS_VERSION:
+            return Build.VERSION.RELEASE;
+        case RequestInfo.DEVICE_MODEL:
+            return Build.MODEL;
+        case RequestInfo.LOCALE:
+            return Locale.getDefault().getLanguage();
+        case RequestInfo.DEVICE_RESOLUTION:
+            DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
+            return dm.widthPixels + "x" + dm.heightPixels;
+        case RequestInfo.DEVICE_TYPE:
+            return getSW(ctx) < 600 ? "phone" : "tablet";
+        case RequestInfo.LAT:
+            Location lat = IdUtil.getLastLocation(ctx);
+            return (lat != null) ? String.valueOf(lat.getLatitude()) : null;
+        case RequestInfo.LONG:
+            Location lon = IdUtil.getLastLocation(ctx);
+            return (lon != null) ? String.valueOf(lon.getLongitude()) : null;
+        case UserIdentifier.ANDROID_ADVERTISER_ID:
+            return getAdvId(ctx);
+        case UserIdentifier.NO_USER_ID:
+            return isEmpty(getAdvId(ctx)) ? "1" : "0";
+        default:
+            return null;
+        }
+    }
 
-	public static String putDefaultVal(Context ctx, String key) {
-		switch (key) {
-		case RequestInfo.BUNDLE_ID:
-			return IdUtil.getPackageName(ctx);
-		case RequestInfo.USER_AGENT:
-			return IdUtil.getUserAgent(ctx);
-		case RequestInfo.OS:
-			return "android";
-		case RequestInfo.OS_VERSION:
-			return Build.VERSION.RELEASE;
-		case RequestInfo.DEVICE_MODEL:
-			return Build.MODEL;
-		case RequestInfo.LOCALE:
-			return Locale.getDefault().getLanguage();
-		case RequestInfo.DEVICE_RESOLUTION:
-			DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
-			return dm.widthPixels + "x" + dm.heightPixels;
-		case RequestInfo.DEVICE_TYPE:
-			return getSW(ctx) < 600 ? "phone" : "tablet";
-		case RequestInfo.LAT:
-			Location lat = IdUtil.getLastLocation(ctx);
-			return (lat != null) ? String.valueOf(lat.getLatitude()) : null;
-		case RequestInfo.LONG:
-			Location lon = IdUtil.getLastLocation(ctx);
-			return (lon != null) ? String.valueOf(lon.getLongitude()) : null;
-		case UserIdentifier.ANDROID_ADVERTISER_ID:
-			return getAdvId(ctx);
-		case UserIdentifier.NO_USER_ID:
-			return isEmpty(getAdvId(ctx)) ? "1" : "0";
-		default:
-			return null;
-		}
-	}
+    private static String getAdvId(Context ctx)
+    {
+        PrefsManager pm = new PrefsManager(ctx);
+        String advId = pm.getAdvId();
+        if (isEmpty(advId))
+        {
+            KeyUtil.pm = pm;
+            IdUtil.getAdvertisingId(ctx, cb);
+        }
+        return advId;
+    }
 
-	private static String getAdvId(Context ctx) {
-		PrefsManager pm = new PrefsManager(ctx);
-		String advId = pm.getAdvId();
-		if (isEmpty(advId)) {
-			KeyUtil.pm = pm;
-			IdUtil.getAdvertisingId(ctx, cb);
-		}
-		return advId;
-	}
+    private static PrefsManager pm;
+    private static Callback     cb = new Callback()
+                                   {
+                                       @Override
+                                       public void didGetAdvId(String advId)
+                                       {
+                                           pm.setAdvId(advId);
+                                       }
+                                   };
 
-	private static PrefsManager pm;
-	private static Callback cb = new Callback() {
+    //
+    private static int getSW(Context ctx)
+    {
+        DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
+        return (int) (Math.min(dm.widthPixels, dm.heightPixels) / dm.density);
+    }
 
-		@Override
-		public void didGetAdvId(String advId) {
-			pm.setAdvId(advId);
-		}
-	};
-
-	//
-
-	private static int getSW(Context ctx) {
-		DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
-		return (int) (Math.min(dm.widthPixels, dm.heightPixels) / dm.density);
-	}
-
-	private KeyUtil() {
-
-	}
-
+    private KeyUtil()
+    {}
 }
