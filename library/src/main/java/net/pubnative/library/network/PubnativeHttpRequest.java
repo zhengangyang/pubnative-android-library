@@ -27,6 +27,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -119,7 +120,7 @@ public class PubnativeHttpRequest {
 
         Log.v(TAG, "start: " + urlString);
         mListener = listener;
-        mHandler = new Handler();
+        mHandler = new Handler(Looper.getMainLooper());
         if (mListener == null) {
             Log.w(TAG, "Warning: null listener specified");
         }

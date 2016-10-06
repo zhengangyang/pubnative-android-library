@@ -214,9 +214,9 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
             Log.v(TAG, "startTracking - impression is already confirmed, dropping impression tracking");
         } else {
             if (mPubnativeAdTracker == null) {
-                mPubnativeAdTracker = new PubnativeImpressionTracker(view, this);
+                mPubnativeAdTracker = new PubnativeImpressionTracker();
             }
-            mPubnativeAdTracker.startTracking();
+            mPubnativeAdTracker.startTracking(view, this);
         }
         // Click tracking
         if (TextUtils.isEmpty(getClickUrl())) {
@@ -258,10 +258,15 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         } else if (mClickableView == null) {
             Log.e(TAG, "Error: clickable view not set");
         } else {
-            Uri uri = Uri.parse(urlString);
-            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-            invokeOnOpenOffer();
-            mClickableView.getContext().startActivity(intent);
+            try {
+                Uri uri = Uri.parse(urlString);
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                mClickableView.getContext().startActivity(intent);
+                invokeOnOpenOffer();
+            } catch (Exception ex) {
+                Log.e(TAG, "openURL: Error - " + ex.getMessage());
+            }
         }
     }
 

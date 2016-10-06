@@ -33,10 +33,10 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
+import net.pubnative.AdvertisingIdClient;
 import net.pubnative.library.network.PubnativeHttpRequest;
 import net.pubnative.library.request.model.PubnativeAdModel;
 import net.pubnative.library.request.model.PubnativeRequestAPIResponseModel;
-import net.pubnative.library.utils.AndroidAdvertisingIDTask;
 import net.pubnative.library.utils.Crypto;
 import net.pubnative.library.utils.SystemUtils;
 
@@ -45,8 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class PubnativeRequest implements AndroidAdvertisingIDTask.Listener,
-                                         PubnativeHttpRequest.Listener {
+public class PubnativeRequest implements PubnativeHttpRequest.Listener, AdvertisingIdClient.Listener {
 
     private static         String               TAG                = PubnativeRequest.class.getSimpleName();
     private static final   String               NATIVE_TYPE_URL    = "native";
@@ -170,7 +169,7 @@ public class PubnativeRequest implements AndroidAdvertisingIDTask.Listener,
                 mEndpoint = endpoint;
                 setDefaultParameters();
                 if (!mRequestParameters.containsKey(Parameters.ANDROID_ADVERTISER_ID)) {
-                    new AndroidAdvertisingIDTask().setListener(this).execute(mContext);
+                    AdvertisingIdClient.getAdvertisingId(mContext, this);
                 } else {
                     sendNetworkRequest();
                 }
@@ -287,22 +286,6 @@ public class PubnativeRequest implements AndroidAdvertisingIDTask.Listener,
     //==============================================================================================
     // CALLBACKS
     //==============================================================================================
-    // AndroidAdvertisingIDTask.Listener
-    //----------------------------------------------------------------------------------------------
-    @Override
-    public void onAndroidAdIdTaskFinished(String result) {
-
-        Log.v(TAG, "onAndroidAdIdTaskFinished");
-        if (TextUtils.isEmpty(result)) {
-            mRequestParameters.put(Parameters.NO_USER_ID, "1");
-        } else {
-            mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID, result);
-            mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID_SHA1, Crypto.sha1(result));
-            mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID_MD5, Crypto.md5(result));
-        }
-        sendNetworkRequest();
-    }
-
     // PubnativeHttpRequest.Listener
     //----------------------------------------------------------------------------------------------
     @Override
@@ -334,5 +317,28 @@ public class PubnativeRequest implements AndroidAdvertisingIDTask.Listener,
 
         Log.v(TAG, "onPubnativeHttpRequestFail: " + exception);
         invokeOnFail(exception);
+    }
+
+    // AdvertisingIdClient.Listener
+    //----------------------------------------------------------------------------------------------
+    @Override
+    public void onAdvertisingIdClientFinish(AdvertisingIdClient.AdInfo adInfo) {
+        Log.v(TAG, "onAdvertisingIdClientFinish");
+        if (adInfo != null && !adInfo.isLimitAdTrackingEnabled()) {
+            String advertisingId = adInfo.getId();
+            mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID, advertisingId);
+            mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID_SHA1, Crypto.sha1(advertisingId));
+            mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID_MD5, Crypto.md5(advertisingId));
+        } else {
+            mRequestParameters.put(Parameters.NO_USER_ID, "1");
+        }
+        sendNetworkRequest();
+    }
+
+    @Override
+    public void onAdvertisingIdClientFail(Exception exception) {
+        Log.v(TAG, "onAdvertisingIdClientFail");
+        mRequestParameters.put(Parameters.NO_USER_ID, "1");
+        sendNetworkRequest();
     }
 }

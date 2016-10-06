@@ -23,6 +23,19 @@ pubnative-android-library is a collection of Open Source tools to implement API 
 * Android API 10
 * An App Token provided in PubNative Dashboard.
 
+Add the following permissions to your application `AndroidManifest.xml` file:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET"/>
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+```
+
+Optionally but not necessary to improve user targeting:
+
+```xml
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+```
+
 <a name="install"></a>
 # Install
 
@@ -31,8 +44,7 @@ pubnative-android-library is a collection of Open Source tools to implement API 
 Add the following line to your module dependencies
 
 ```java
-compile 'net.pubnative:library:2.0.0'
-
+compile 'net.pubnative:library:2.0.1'
 ```
 
 ### Manual
