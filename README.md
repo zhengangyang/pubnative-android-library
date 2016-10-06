@@ -36,7 +36,7 @@ pubnative-android-library is a collection of Open Source tools to implement API 
 Add the following line to your module dependencies
 
 ```java
-compile 'net.pubnative:library:1.4.7'
+compile 'net.pubnative:library:1.4.8'
 
 ```
 

@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'com.github.dcendents.android-maven'
 
-version = '1.4.7'
+version = '1.4.8'
 group = 'net.pubnative'
 
 def sharedVersion = version
@@ -13,7 +13,7 @@ android {
     defaultConfig {
         minSdkVersion 10
         targetSdkVersion 10
-        versionCode 8
+        versionCode 9
         versionName sharedVersion
     }
     buildTypes {

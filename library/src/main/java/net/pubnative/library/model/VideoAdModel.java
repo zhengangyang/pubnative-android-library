@@ -1,13 +1,14 @@
 package net.pubnative.library.model;
 
+import android.content.Context;
+
 import net.pubnative.library.PubnativeContract.Response.VideoNativeAd;
+import net.pubnative.library.model.vast.VastAd;
 
 import org.droidparts.annotation.serialize.JSON;
 import org.droidparts.persist.serializer.XMLSerializer;
 import org.droidparts.util.L;
 import org.w3c.dom.Node;
-
-import android.content.Context;
 
 public class VideoAdModel extends NativeAdModel implements VideoNativeAd {
     /**
@@ -20,12 +21,12 @@ public class VideoAdModel extends NativeAdModel implements VideoNativeAd {
     @JSON(key = VAST)
     VastAdModel[] vast;
 
-    public VideoAd getVastAd(Context ctx) {
+    public VastAd getVastAd(Context ctx) {
         if (this.vast.length == 1) {
             String txt = this.vast[0].ad;
             try {
                 Node doc = XMLSerializer.parseDocument(txt).getFirstChild();
-                return new XMLSerializer<VastAdModel>(VastAdModel.class, ctx).deserialize(doc);
+                return new XMLSerializer<VastAd>(VastAd.class, ctx).deserialize(doc);
             } catch (Exception e) {
                 L.wtf(e);
             }
