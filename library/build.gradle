@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 //apply plugin: 'com.jfrog.bintray'
 //apply plugin: 'com.github.dcendents.android-maven'
 
-version = '2.0.3'
+version = '2.0.4'
 //group = 'net.pubnative'
 
 def sharedVersion = version
@@ -13,7 +13,7 @@ android {
     defaultConfig {
         minSdkVersion 10
         targetSdkVersion 10
-        versionCode 21
+        versionCode 23
         versionName sharedVersion
     }
     buildTypes {
@@ -31,7 +31,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.google.code.gson:gson:2.3'
     compile "net.pubnative:url_driller:1.2.1"
-    compile 'net.pubnative:advertising_id_client:1.0.0'
+    compile 'net.pubnative:advertising_id_client:1.0.1'
 
     // JVM tests
     testCompile 'junit:junit:4.12'
