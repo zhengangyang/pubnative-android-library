@@ -26,6 +26,12 @@ public class PubnativeGameListDelegate extends PubnativeActivityDelegate impleme
     private int       LAUNCH_FLAGS = FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_SINGLE_TOP | FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
     private AdRequest request;
 
+    /**
+     * Creates enables a new game list delegate for showing ad
+     * @param context   Context object
+     * @param app_token App token provided by Pubnative
+     * @param listener  Listener to track ad display events
+     */
     public static void Create(Context context, String app_token, PubnativeActivityListener listener)
     {
         PubnativeGameListDelegate delegate = new PubnativeGameListDelegate(context, app_token, listener);

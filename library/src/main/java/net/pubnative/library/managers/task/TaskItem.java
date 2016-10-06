@@ -4,8 +4,17 @@ public abstract class TaskItem
 {
     public interface TaskItemListener
     {
+        /**
+         * Invoked when the task is completely executed
+         * @param item Task Item object used to run the task
+         */
         void onTaskItemListenerFinished(TaskItem item);
 
+        /**
+         * Invoked when the task execution fails
+         * @param item Task Item object used to run the task
+         * @param e    Exception that caused the failure
+         */
         void onTaskItemListenerFailed(TaskItem item, Exception e);
     }
 
@@ -17,6 +26,10 @@ public abstract class TaskItem
         this.listener = listener;
     }
 
+    /**
+     * Executes the Task
+     * @param listener Listener to track the task execution behavior
+     */
     public void execute(TaskItemListener listener)
     {
         this.managerListener = listener;

@@ -23,6 +23,12 @@ public abstract class PubnativeActivityDelegate extends BroadcastReceiver
         // Do nothing
     }
 
+    /**
+     * Creates new activity deligate object
+     * @param context   Context object
+     * @param app_token App token provided by Pubnative
+     * @param listener  Listener to track the deligate's operations
+     */
     public PubnativeActivityDelegate(Context context, String app_token,
                                      PubnativeActivityListener listener)
     {

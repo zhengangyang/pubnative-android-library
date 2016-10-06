@@ -21,7 +21,7 @@ public class TrackingManager
     private static final String    SHARED_FILE        = "net.pubnative.library.managers.TrackingManager";
     private static final String    CONFIRMED_URLS_SET = "net.pubnative.library.managers.TrackingManager.confirmed_urls";
     private static final String    PENDING_URLS_SET   = "net.pubnative.library.managers.TrackingManager.pending_urls";
-    private static boolean         isTracking         = false;                                                           ;
+    private static boolean         isTracking         = false;
 
     private static List<String> getSharedList(final Context context, String set)
     {
@@ -74,6 +74,13 @@ public class TrackingManager
         }
     }
 
+    /**
+     * Checks if the specified beacon was tracked already for a given ad
+     * @param context Context object
+     * @param ad      Ad object to track beacon
+     * @param beacon  Beacon type to be checked
+     * @return        true if beacon tracking was done for given ad, else false
+     */
     public synchronized static boolean isTrackedBeacon(Context context, NativeAdModel ad, String beacon)
     {
         boolean result = false;
@@ -86,6 +93,12 @@ public class TrackingManager
         return result;
     }
 
+    /**
+     * Track specified beacon for a given ad
+     * @param context Context object
+     * @param ad      Ad object to tack beacon
+     * @param beacon  Beacon type to be tracked
+     */
     public synchronized static void TrackBeacon(Context context, NativeAdModel ad, String beacon)
     {
         List<String> confirmedAds = TrackingManager.getSharedList(context, CONFIRMED_URLS_SET);

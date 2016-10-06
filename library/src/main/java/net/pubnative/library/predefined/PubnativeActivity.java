@@ -124,18 +124,27 @@ public class PubnativeActivity extends Activity
         return result;
     }
 
+    /**
+     * Sends event messages to Activity deligate
+     * @param event Event name
+     */
     public void streamMessageEvent(String event)
     {
         this.streamMessageEvent(event, null);
     }
 
-    public void streamMessageEvent(String event, Exception extraObject)
+    /**
+     * Sends event messages to Activity deligate
+     * @param event     Event name
+     * @param exception Exception with error message
+     */
+    public void streamMessageEvent(String event, Exception exception)
     {
         Intent messageIntent = new Intent(this.getExtraString(EXTRA_IDENTIFIER));
         messageIntent.putExtra(EVENT, event);
-        if (extraObject != null)
+        if (exception != null)
         {
-            messageIntent.putExtra(DATA, extraObject);
+            messageIntent.putExtra(DATA, exception);
         }
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(messageIntent);
     }

@@ -6,14 +6,19 @@ import java.util.Locale;
 
 public class Crypto
 {
-    public static String sha1(String string)
+    /**
+     * Encrypts the given input string using SHA-1 algorithm
+     * @param input String to be encrypted
+     * @return Encrypted string
+     */
+    public static String sha1(String input)
     {
         String result = "";
         StringBuilder stringBuilder = new StringBuilder();
         try
         {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            byte[] bytes = string.getBytes("UTF-8");
+            byte[] bytes = input.getBytes("UTF-8");
             digest.update(bytes, 0, bytes.length);
             bytes = digest.digest();
             for (final byte b : bytes)
@@ -29,14 +34,19 @@ public class Crypto
         return result;
     }
 
-    public static String md5(String s)
+    /**
+     * Encrypts the given input string using md5 algorithm
+     * @param input String to be encrypted
+     * @return Encrypted string
+     */
+    public static String md5(String input)
     {
         String result = "";
         try
         {
             // Create MD5 Hash
             MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
-            digest.update(s.getBytes());
+            digest.update(input.getBytes());
             byte messageDigest[] = digest.digest();
             // Create Hex String
             StringBuffer hexString = new StringBuffer();

@@ -29,8 +29,12 @@ import android.content.Context;
 
 public class ImageFetcher extends org.droidparts.net.image.ImageFetcher
 {
-    public ImageFetcher(Context ctx)
+    /**
+     * Creates a new instance of ImageFetcher
+     * @param context Context object
+     */
+    public ImageFetcher(Context context)
     {
-        super(ctx, new BackgroundThreadExecutor(2, "ImageFetcher-Fetch"), new RESTClient(ctx), BitmapMemoryCache.getDefaultInstance(ctx), null);
+        super(context, new BackgroundThreadExecutor(2, "ImageFetcher-Fetch"), new RESTClient(context), BitmapMemoryCache.getDefaultInstance(context), null);
     }
 }

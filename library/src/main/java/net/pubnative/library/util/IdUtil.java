@@ -38,6 +38,12 @@ import org.droidparts.util.L;
 
 public class IdUtil
 {
+    /**
+     * Checks if an app with the given name is installed in the device.
+     * @param context Context object
+     * @param pkgName Package name to be checked
+     * @return true if app with given package name is installed, else false
+     */
     public static boolean isPackageInstalled(Context context, String pkgName)
     {
         boolean result = false;
@@ -54,9 +60,14 @@ public class IdUtil
         return result;
     }
 
-    public static String getPackageName(Context ctx)
+    /**
+     * Gets you the package name of the app when it's context is passed in.
+     * @param context Context object
+     * @return a valid package name if found, else an empty string
+     */
+    public static String getPackageName(Context context)
     {
-        PackageInfo pInfo = getPackageInfo(ctx);
+        PackageInfo pInfo = getPackageInfo(context);
         return (pInfo != null) ? pInfo.packageName : "";
     }
 
@@ -73,6 +84,11 @@ public class IdUtil
         }
     }
 
+    /**
+     * Tells if the device running this app is a tablet or not.
+     * @param context Context object
+     * @return true if the device is a tablet, else false
+     */
     public static boolean isTablet(Context context)
     {
         boolean xlarge = ((context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) == 4);
@@ -80,6 +96,11 @@ public class IdUtil
         return (xlarge || large);
     }
 
+    /**
+     * Gives you the android advertising id.
+     * @param context  Context object
+     * @param listener Listener to get callback when android ad id is fetched.
+     */
     public static void getAndroidAdvertisingID(Context context, AndroidAdvertisingIDTask.AndroidAdvertisingIDTaskListener listener)
     {
         new AndroidAdvertisingIDTask().setListener(listener).execute(context);
@@ -133,9 +154,14 @@ public class IdUtil
         }
     }
 
-    public static Location getLastLocation(Context ctx)
+    /**
+     * Gets you the last known location of the device.
+     * @param context Context object
+     * @return Location object if last known location if available, else null
+     */
+    public static Location getLastLocation(Context context)
     {
-        LocationManager lm = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
+        LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         Location loc = null;
         for (String prov : lm.getProviders(true))
         {

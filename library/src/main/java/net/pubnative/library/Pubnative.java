@@ -19,21 +19,37 @@ public class Pubnative
         String GAME_LIST    = "game_list";
     }
 
+    /**
+     * Pauses the execution of Pubnative tasks
+     */
     public static void onPause()
     {
         TaskManager.onPause();
     }
 
+    /**
+     * Resumes the execution of Pubnative tasks
+     */
     public static void onResume()
     {
         TaskManager.onResume();
     }
 
+    /**
+     * Stops the execution of Pubnative tasks
+     */
     public static void onDestroy()
     {
         TaskManager.onDestroy();
     }
 
+    /**
+     * Show ad in predefined format based on the ad type.
+     * @param context   Context object
+     * @param type      Type of ad. Available types are `Pubnative.FullScreen.INTERSTITIAL` and `Punative.FullScreen.GAME_LIST`
+     * @param app_token Valid app_token given by Pubnative
+     * @param listener  Listener to keep track of behaviour of this method
+     */
     public static void show(Context context, String type, String app_token, PubnativeActivityListener listener)
     {
         if (!Pubnative.isMainThread())

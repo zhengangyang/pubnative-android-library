@@ -25,22 +25,35 @@ public class TaskManager implements TaskItemListener
         return TaskManager.instance;
     }
 
+    /**
+     * Adds the given task item to the pending tasks queue.
+     * @param task Task Item object to be pushed to the queue
+     */
     public static void addLooperTask(TaskItem task)
     {
         TaskManager.getInstance().tasks.add(task);
         TaskManager.setRunning(true);
     }
 
+    /**
+     * Resumes the tasks runner
+     */
     public static void onResume()
     {
         TaskManager.setRunning(true);
     }
 
+    /**
+     * Pauses the tasks runner
+     */
     public static void onPause()
     {
         TaskManager.setRunning(false);
     }
 
+    /**
+     * Stops the task runner
+     */
     public static void onDestroy()
     {
         TaskManager.setRunning(false);

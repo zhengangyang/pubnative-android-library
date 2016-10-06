@@ -30,14 +30,19 @@ import android.view.View;
 
 public class ViewUtil
 {
-    public static int getVisiblePercent(View v)
+    /**
+     * Gets the percentage value of the given View's visibility.
+     * @param view View object, whose visibility percentage to be calculated
+     * @return     Visible percentage value
+     */
+    public static int getVisiblePercent(View view)
     {
-        if (v.isShown())
+        if (view.isShown())
         {
             Rect r = new Rect();
-            v.getGlobalVisibleRect(r);
+            view.getGlobalVisibleRect(r);
             double sVisible = r.width() * r.height();
-            double sTotal = v.getWidth() * v.getHeight();
+            double sTotal = view.getWidth() * view.getHeight();
             return (int) (100 * sVisible / sTotal);
         }
         else
@@ -46,9 +51,15 @@ public class ViewUtil
         }
     }
 
-    public static Point getFullSceeenSize(Context ctx, MediaPlayer mediaPlayer)
+    /**
+     * Gets the full screen size
+     * @param context     Context object
+     * @param mediaPlayer MediaPlayer object
+     * @return            Point object
+     */
+    public static Point getFullSceeenSize(Context context, MediaPlayer mediaPlayer)
     {
-        DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
+        DisplayMetrics dm = context.getResources().getDisplayMetrics();
         int videoW = mediaPlayer.getVideoWidth();
         int videoH = mediaPlayer.getVideoHeight();
         float screenW = dm.widthPixels;

@@ -31,19 +31,34 @@ import android.view.WindowManager;
 
 public class ScreenUtil
 {
-    public static int getScreenDensityDpi(Context ctx)
+    /**
+     * Gets the screen density of the device's display
+     * @param context Context object
+     * @return        Screen density in Dpi
+     */
+    public static int getScreenDensityDpi(Context context)
     {
-        return ctx.getResources().getDisplayMetrics().densityDpi;
+        return context.getResources().getDisplayMetrics().densityDpi;
     }
 
-    public static int getScreenWidth(Context ctx)
+    /**
+     * Gets the width of the device's display
+     * @param context Context object
+     * @return        Width of the screen in pixels
+     */
+    public static int getScreenWidth(Context context)
     {
-        return ctx.getResources().getDisplayMetrics().widthPixels;
+        return context.getResources().getDisplayMetrics().widthPixels;
     }
 
-    public static int getScreenHeight(Context ctx)
+    /**
+     * Gets the height of the device's display
+     * @param context Context object
+     * @return        Height of the screen in pixels
+     */
+    public static int getScreenHeight(Context context)
     {
-        return ctx.getResources().getDisplayMetrics().heightPixels;
+        return context.getResources().getDisplayMetrics().heightPixels;
     }
 
     @SuppressLint("NewApi")
@@ -57,16 +72,25 @@ public class ScreenUtil
         return p;
     }
 
-    //
-    public static boolean isPortrait(Context ctx)
+    /**
+     * Checks if the orientation of the screen is portrait
+     * @param context Context object
+     * @return        true if orientation is portrait, else false
+     */
+    public static boolean isPortrait(Context context)
     {
-        int orientation = ctx.getResources().getConfiguration().orientation;
+        int orientation = context.getResources().getConfiguration().orientation;
         return (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 
-    public static boolean isFullScreen(Activity act)
+    /**
+     * Checks if the activity is shown in fullscreen
+     * @param activity Activity object
+     * @return         true if activity is fullscreen, else false
+     */
+    public static boolean isFullScreen(Activity activity)
     {
-        int windowFlags = act.getWindow().getAttributes().flags;
+        int windowFlags = activity.getWindow().getAttributes().flags;
         return (windowFlags & WindowManager.LayoutParams.FLAG_FULLSCREEN) != 0;
     }
 

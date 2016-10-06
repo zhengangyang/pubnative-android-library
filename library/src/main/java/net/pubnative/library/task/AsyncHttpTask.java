@@ -21,13 +21,27 @@ public class AsyncHttpTask extends AsyncTask<String, Void, String>
 
     public interface AsyncHttpTaskListener
     {
+        /**
+         * Invoked when http task is finished
+         * @param task   AsyncTask object used
+         * @param result Response from server
+         */
         void onAsyncHttpTaskFinished(AsyncHttpTask task, String result);
 
+        /**
+         * Invoked when http task fails
+         * @param task AyncTask object used
+         * @param e    Exception that caused failure
+         */
         void onAsyncHttpTaskFailed(AsyncHttpTask task, Exception e);
     }
 
     private AsyncHttpTaskListener listener;
 
+    /**
+     * Attach a listener to track async http task's behaviour
+     * @param listener Listener object to be attached
+     */
     public void setListener(AsyncHttpTaskListener listener)
     {
         this.listener = listener;

@@ -27,6 +27,12 @@ public class PubnativeInterstitialDelegate extends PubnativeActivityDelegate imp
     private int       LAUNCH_FLAGS = FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_SINGLE_TOP | FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
     private AdRequest request;
 
+    /**
+     * Creates enables a new interstitial delegate for showing ad
+     * @param context   Context object
+     * @param app_token App token provided by Pubnative
+     * @param listener  Listener to track ad display events
+     */
     public static void Create(Context context, String app_token, PubnativeActivityListener listener)
     {
         PubnativeInterstitialDelegate delegate = new PubnativeInterstitialDelegate(context, app_token, listener);

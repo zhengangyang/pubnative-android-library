@@ -42,6 +42,11 @@ public abstract class AdRenderer<T extends NativeAdModel>
         this.imageFetcher = new ImageFetcher(context);
     }
 
+    /**
+     * Renders the given ad using the views set by caller
+     * @param ad       Valid ad object
+     * @param listener Listener to track the behaviour of this method
+     */
     public void render(T ad, AdRendererListener listener)
     {
         this.ad = ad;

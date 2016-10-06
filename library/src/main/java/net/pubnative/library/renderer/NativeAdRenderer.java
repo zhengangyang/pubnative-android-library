@@ -56,11 +56,20 @@ public class NativeAdRenderer extends AdRenderer<NativeAdModel> implements
     public TextView      downloadView;
     public boolean       enableAnimations = false;
 
+    /**
+     * Creates a new ad renderer object
+     * @param context valid Context object
+     */
     public NativeAdRenderer(Context context)
     {
         super(context);
     }
 
+    /**
+     * Renders the loaded native ad using the views set by caller
+     * @param ad       valid native ad object
+     * @param listener listener to track the behaviour of this method
+     */
     @Override
     public void render(NativeAdModel ad, AdRendererListener listener)
     {

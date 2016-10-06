@@ -19,6 +19,11 @@ public class PubnativeGameListView extends PubnativeView implements
 {
     ListView itemsListView;
 
+    /**
+     * Creates new game list view with the provided ads.
+     * @param activity Activity instance
+     * @param ads      Array of ads
+     */
     public PubnativeGameListView(PubnativeActivity activity, ArrayList<NativeAdModel> ads)
     {
         super(activity, ads);

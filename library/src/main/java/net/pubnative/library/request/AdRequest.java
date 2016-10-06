@@ -60,12 +60,20 @@ public class AdRequest implements Serializable, AsyncHttpTask.AsyncHttpTaskListe
     private              Endpoint                endpoint          = null;
     private              Context                 context           = null;
 
-    // Public methods
+    /**
+     * Creates a new ad request object
+     * @param context valid Context object
+     */
     public AdRequest(Context context)
     {
         this.context = context;
     }
 
+    /**
+     * Sets parameters required to make the ad request
+     * @param key key name of parameter
+     * @param val actual value of parameter
+     */
     public void setParameter(String key, String val)
     {
         if (val == null)
@@ -83,6 +91,11 @@ public class AdRequest implements Serializable, AsyncHttpTask.AsyncHttpTaskListe
         return this.endpoint;
     }
 
+    /**
+     * Starts ad request
+     * @param endpoint type of ad (ex: NATIVE)
+     * @param listener valid listener to track ad request callbacks.
+     */
     public void start(final Endpoint endpoint, AdRequestListener listener)
     {
         this.listener = listener;
@@ -95,7 +108,7 @@ public class AdRequest implements Serializable, AsyncHttpTask.AsyncHttpTaskListe
         {
             this.invokeOnAdRequestStarted();
             // UI THREAD
-            this.fillInDefaultls();
+            this.fillInDefaults();
             // BACKGROUND THREAD
             // Since the android_advertiser id must be checked in background
             // thread,
@@ -154,7 +167,7 @@ public class AdRequest implements Serializable, AsyncHttpTask.AsyncHttpTaskListe
         this.invokeOnAdRequestFailed(e);
     }
 
-    private void fillInDefaultls()
+    private void fillInDefaults()
     {
         if (!this.requestParameters.containsKey(PubnativeContract.Request.BUNDLE_ID))
         {

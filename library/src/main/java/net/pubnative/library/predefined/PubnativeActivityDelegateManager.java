@@ -11,6 +11,10 @@ public class PubnativeActivityDelegateManager
     {
     }
 
+    /**
+     * Gets you the singleton instance of activity deligate manager
+     * @return Activity deligate manager instance
+     */
     private static PubnativeActivityDelegateManager getInstance()
     {
         if (instance == null)
@@ -20,6 +24,10 @@ public class PubnativeActivityDelegateManager
         return instance;
     }
 
+    /**
+     * Add activity deligate object to the cache
+     * @param delegate Activity deligate object to be added to cache
+     */
     public static void addDelegate(PubnativeActivityDelegate delegate)
     {
         if (!PubnativeActivityDelegateManager.getInstance().delegates.contains(delegate))
@@ -28,6 +36,10 @@ public class PubnativeActivityDelegateManager
         }
     }
 
+    /**
+     * Remove activity deligate object from the cache
+     * @param delegate Activity deligate object to be removed from cache
+     */
     public static void removeDelegate(PubnativeActivityDelegate delegate)
     {
         PubnativeActivityDelegateManager.getInstance().delegates.remove(delegate);

@@ -124,18 +124,30 @@ public class NativeAdModel extends Model implements NativeAd, TaskItemListener
         return result;
     }
 
+    /**
+     * Open the click url in Browser or Play Store app based on it's type
+     * @param context Context object
+     */
     public void open(Context context)
     {
-        if (this.click_url != null)
+        this.context = context;
+        if(this.context != null)
         {
-            if (this.app_details != null && this.app_details.store_id != null)
+            if (this.click_url != null)
             {
-                this.doBackgroundRedirect();
+                if (this.app_details != null && this.app_details.store_id != null)
+                {
+                    this.doBackgroundRedirect();
+                }
+                else
+                {
+                    this.doBrowserRedirect();
+                }
             }
-            else
-            {
-                this.doBrowserRedirect();
-            }
+        }
+        else
+        {
+            Log.e("NativeAdModel", "null or invalid context assigned for opening the ad");
         }
     }
 
@@ -204,11 +216,22 @@ public class NativeAdModel extends Model implements NativeAd, TaskItemListener
         }
     }
 
+    /**
+     * Start impression tracking in background on given view.
+     * @param context Context object.
+     * @param view    View object, whose impression should be tracked.
+     */
     public void confirmImpressionAutomatically(Context context, View view)
     {
         this.confirmImpressionAutomatically(context, view, null);
     }
 
+    /**
+     * Start impression tracking in background with a listener to track impression confirmation callbacks.
+     * @param context  Context object.
+     * @param view     View object, whose impression should be tracked.
+     * @param listener listener object to track the impression callbacks
+     */
     public void confirmImpressionAutomatically(Context context, View view, Listener listener)
     {
         this.listener = listener;
@@ -220,7 +243,6 @@ public class NativeAdModel extends Model implements NativeAd, TaskItemListener
     @Override
     public void onTaskItemListenerFinished(TaskItem item)
     {
-        Log.v("NativeAdModel", "onTaskItemListenerFinished");
         this.confirmBeacon(this.context, Response.NativeAd.Beacon.TYPE_IMPRESSION);
         if (this.listener != null)
         {
