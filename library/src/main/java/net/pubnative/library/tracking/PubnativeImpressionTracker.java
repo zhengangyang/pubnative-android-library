@@ -158,17 +158,17 @@ public class PubnativeImpressionTracker {
         }
     };
 
-    private void checkImpression() {
+    private synchronized void checkImpression() {
 
         if (mIsTrackingInProgress || mTrackingShouldStop) {
             return;
         }
         if (SystemUtils.isVisibleOnScreen(mView, VISIBILITY_PERCENTAGE_THRESHOLD)) {
-            mIsTrackingInProgress = true;
             if (mCheckImpressionThread == null) {
+                mIsTrackingInProgress = true;
                 mCheckImpressionThread = new Thread(new CheckImpressionRunnable());
+                mCheckImpressionThread.start();
             }
-            mCheckImpressionThread.start();
         }
     }
 
