@@ -28,12 +28,10 @@ import android.graphics.Rect;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class PubnativeVisibilityTracker {

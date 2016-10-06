@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_centerInParent="true"
+    android:background="@android:color/black">
+
+    <RelativeLayout
+        android:id="@+id/rl_header_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/rl_footer_container"
+        android:layout_alignParentTop="true"
+        android:gravity="center"
+        android:background="@android:color/background_light">
+
+        <ImageView
+            android:id="@+id/iv_banner"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter" />
+
+        <net.pubnative.player.VASTPlayer
+            android:id="@+id/player"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:background="@android:color/black"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/ic_standard_banner"
+            android:layout_width="match_parent"
+            android:layout_height="480dp"
+            android:background="@android:color/black"
+            android:visibility="gone" />
+
+        <RelativeLayout
+            android:id="@+id/rl_webview_container"
+            android:layout_width="match_parent"
+            android:visibility="gone"
+            android:layout_height="480dp">
+
+            <WebView
+                android:id="@+id/wv_standard_banner"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rl_footer_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:paddingBottom="4dp"
+        android:background="@android:color/background_light">
+
+        <RelativeLayout
+            android:id="@+id/pubnative_data"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_margin="10dp">
+
+            <ImageView
+                android:id="@+id/ic_icon"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="5dp"
+                android:adjustViewBounds="true"
+                android:background="@android:color/white"
+                android:padding="3dp" />
+
+            <TextView
+                android:id="@+id/tv_title"
+                style="@android:style/TextAppearance.Large"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_alignTop="@id/ic_icon"
+                android:layout_toRightOf="@id/ic_icon"
+                android:lines="1"
+                android:maxLines="1"
+                android:textColor="@android:color/black"
+                android:textSize="20sp" />
+
+            <RatingBar
+                android:id="@+id/rb_rating"
+                style="@style/ratingBarStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/ic_icon"
+                android:layout_below="@id/tv_title"
+                android:layout_marginBottom="5dp"
+                android:layout_toRightOf="@id/ic_icon"
+                android:isIndicator="true"
+                android:visibility="gone" />
+
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/tv_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/pubnative_data"
+            android:layout_alignLeft="@+id/pubnative_data"
+            android:layout_alignParentBottom="false"
+            android:layout_alignRight="@+id/pubnative_data"
+            android:layout_marginBottom="15dp"
+            android:layout_marginTop="10dp"
+            android:textSize="16sp"
+            android:textColor="@android:color/black" />
+
+        <Button
+            android:id="@+id/btn_cta"
+            style="@style/pubnative_DownloadButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tv_description"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:text="Call-To-Action"
+            android:textColor="@android:color/white" />
+
+        <ImageView
+            android:id="@+id/pubnative_company_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btn_cta"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerHorizontal="false"
+            android:layout_marginBottom="4dp"
+            android:src="@drawable/pubnative_logo_bw" />
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:background="@color/pubnative_sponsored_background_color"
+        android:padding="2dp"
+        android:text="@string/sponsored"
+        android:textColor="@color/pubnative_sponsored_text_color"
+        android:textSize="10sp" />
+</RelativeLayout>

@@ -35,20 +35,25 @@ public class SettingsActivity extends Activity {
 
     private static final String TAG = SettingsActivity.class.getName();
     private TextView appToken;
+    private TextView zoneId;
 
     protected void onCreate(Bundle savedInstanceState) {
 
         Log.v(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        appToken = (TextView) findViewById(R.id.activity_settings_text_app_token);
+        appToken = (TextView) findViewById(R.id.activity_settings_appToken_edit);
         appToken.setText(Settings.getAppToken());
+
+        zoneId = (TextView) findViewById(R.id.activity_settings_zoneId_edit);
+        zoneId.setText(Settings.getZoneId());
     }
 
     public void onDoneClick(View view) {
 
         Log.v(TAG, "onDoneClick");
         Settings.setAppToken(appToken.getText().toString());
+        Settings.setZoneId(zoneId.getText().toString());
         finish();
     }
 }

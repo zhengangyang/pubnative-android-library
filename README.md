@@ -37,6 +37,7 @@ pubnative-android-library is a collection of Open Source tools to implement API 
 
 * Android API 10
 * An App Token provided in PubNative Dashboard.
+* A Zone ID provided in PubNative Dashboard.
 
 Add the following permissions to your application `AndroidManifest.xml` file:
 
@@ -60,7 +61,7 @@ Optionally but not necessary to improve user targeting:
 Add the following line to your module dependencies
 
 ```
-compile 'net.pubnative:library:2.2.1'
+compile 'net.pubnative:library:2.3.0'
 ```
 
 <a name="install_manual"></a>
@@ -91,6 +92,7 @@ For simplier usage we're providing an interface `PubnativeRequest.Parameters` th
 ```java
 PubnativeRequest request = new PubnativeRequest();
 request.setParameter(PubnativeRequest.Parameters.APP_TOKEN, "----YOUR_APP_TOKEN_HERE---");
+request.setParameter(PubnativeRequest.Parameters.ZONE_ID, "----YOUR_ZONE_ID_HERE---");
 request.start(CONTEXT, new PubnativeRequest.Listener() {
     @Override
     public void onPubnativeRequestSuccess(PubnativeRequest request, List<PubnativeAdModel> ads) {
@@ -128,6 +130,14 @@ If you want, you can set a timeout to avoid long waits in case of slow connectio
 
 ```java
 request.setTimeout(<timeoutinmillis>);
+```
+
+##### COPPA
+
+If you want to enable COPPA mode to be COPPA compliant, you can set it using the following method.
+
+```java
+request.setCoppaMode(<boolean>);
 ```
 
 <a name="usage_native_track"></a>
@@ -186,7 +196,7 @@ Sample usage
 ```
 PubnativeInterstitial interstitial = new PubnativeInterstitial();
 interstitial.setListener(this);
-interstitial.load(<CONTEXT>, <YOUR_APP_TOKEN_HERE>);
+interstitial.load(<CONTEXT>, <YOUR_APP_TOKEN_HERE>, <YOUR_ZONE_ID_HERE>);
 
 // Once the ad is loaded ......
 interstitial.show();
@@ -203,7 +213,7 @@ Sample usage
 ```
 PubnativeBanner banner = new PubnativeBanner();
 banner.setListener(this);
-banner.load(<CONTEXT>, <YOUR_APP_TOKEN_HERE>, <BANNER_SIZE>, <BANNER_POSITION>);
+banner.load(<CONTEXT>, <YOUR_APP_TOKEN_HERE>, <YOUR_ZONE_ID_HERE>, <BANNER_SIZE>, <BANNER_POSITION>);
 
 // Once the ad is loaded ......
 banner.show();
@@ -227,7 +237,7 @@ Sample usage
 ```
 PubnativeFeedBanner feedBanner = new PubnativeFeedBanner();
 feedBanner.setListener(this);
-feedBanner.load(<CONTEXT>, <YOUR_APP_TOKEN_HERE>);
+feedBanner.load(<CONTEXT>, <YOUR_APP_TOKEN_HERE>, <YOUR_ZONE_ID_HERE>);
 
 // Once the ad is loaded ......
 feedBanner.getView();
@@ -245,7 +255,7 @@ Sample usage
 ```
 PubnativeVideo video = new PubnativeVideo();
 video.setListener(this);
-video.load(<CONTEXT>, <YOUR_APP_TOKEN_HERE>);
+video.load(<CONTEXT>, <YOUR_APP_TOKEN_HERE>, <YOUR_ZONE_ID_HERE>);
 
 // Once the ad is loaded ......
 video.show();
@@ -263,7 +273,7 @@ Sample usage
 ```
 PubnativeFeedVideo feedVideo = new PubnativeFeedVideo();
 feedVideo.setListener(this);
-feedVideo.load(<CONTEXT>, <YOUR_APP_TOKEN_HERE>);
+feedVideo.load(<CONTEXT>, <YOUR_APP_TOKEN_HERE>, <YOUR_ZONE_ID_HERE>);
 
 // Once the ad is loaded ......
 feedVideo.getView();

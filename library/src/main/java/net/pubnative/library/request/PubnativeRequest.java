@@ -34,12 +34,16 @@ import com.google.gson.Gson;
 
 import net.pubnative.AdvertisingIdClient;
 import net.pubnative.library.network.PubnativeHttpRequest;
+import net.pubnative.library.request.model.PubnativeAdModel;
 import net.pubnative.library.request.model.api.PubnativeAPIV3AdModel;
 import net.pubnative.library.request.model.api.PubnativeAPIV3ResponseModel;
-import net.pubnative.library.request.model.PubnativeAdModel;
 import net.pubnative.library.utils.Crypto;
 import net.pubnative.library.utils.SystemUtils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +53,10 @@ import java.util.Map;
 public class PubnativeRequest implements PubnativeHttpRequest.Listener,
                                          AdvertisingIdClient.Listener {
 
-    private static         String               TAG                = PubnativeRequest.class.getSimpleName();
+    private static String TAG = PubnativeRequest.class.getSimpleName();
+
+    @Deprecated
+    public final static    String               LEGACY_ZONE_ID     = "1";
     protected static final String               BASE_URL           = "http://api.pubnative.net/api/v3/native";
     protected              Context              mContext           = null;
     protected              Map<String, String>  mRequestParameters = new HashMap<String, String>();
@@ -94,9 +101,11 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
         String KEYWORDS                   = "keywords";
         String APP_VERSION                = "appver";
         String TEST                       = "test";
+        String COPPA                      = "coppa";
         String VIDEO                      = "video";
         String META_FIELDS                = "mf";
         String ASSET_FIELDS               = "af";
+        String ASSET_LAYOUT               = "al";
     }
 
     //==============================================================================================
@@ -171,7 +180,6 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
      * @param context  valid Context object
      * @param endpoint endpoint of ad (ex: NATIVE)
      * @param listener valid nativeRequestListener to track ad request callbacks.
-     *
      * @deprecated Start doesn't require an endpoint anymore, this parameter will be ignored
      */
     @Deprecated
@@ -223,6 +231,16 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
     }
 
     /**
+     * Sets COPPA mode to the status enabled in the parameter
+     *
+     * @param enabled true if you want to enable COPPA mode
+     */
+    public void setCoppaMode(boolean enabled) {
+        Log.v(TAG, "setCoppaMode");
+        setParameter(Parameters.COPPA, enabled ? "1" : "0");
+    }
+
+    /**
      * Sets the timeout for the request to the specified timeout
      *
      * @param timeout int value of timeout in milliseconds
@@ -240,6 +258,9 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
     protected void setDefaultParameters() {
 
         Log.v(TAG, "setDefaultParameters");
+        if (!mRequestParameters.containsKey(Parameters.ZONE_ID)) {
+            mRequestParameters.put(Parameters.ZONE_ID, "1");
+        }
         if (!mRequestParameters.containsKey(Parameters.OS)) {
             mRequestParameters.put(Parameters.OS, "android");
         }
@@ -254,7 +275,7 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
         }
         // If none of lat and long is sent by the client then only we add default values. We can't alter client's parameters.
         if (!mRequestParameters.containsKey(Parameters.LAT) &&
-            !mRequestParameters.containsKey(Parameters.LONG)) {
+            !mRequestParameters.containsKey(Parameters.LONG) && !isCoppaModeEnabled()) {
             Location location = SystemUtils.getLastLocation(mContext);
             if (location != null) {
                 mRequestParameters.put(Parameters.LAT, String.valueOf(location.getLatitude()));
@@ -262,8 +283,8 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
             }
         }
         // If no asset has been set explicitly, add them here to get asset fields in response
-        if(!mRequestParameters.containsKey(Parameters.ASSET_FIELDS)) {
-            String[] assets = new String[] {
+        if (!mRequestParameters.containsKey(Parameters.ASSET_LAYOUT) && !mRequestParameters.containsKey(Parameters.ASSET_FIELDS)) {
+            String[] assets = new String[]{
                     PubnativeAsset.TITLE,
                     PubnativeAsset.DESCRIPTION,
                     PubnativeAsset.ICON,
@@ -274,9 +295,10 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
             setParameterArray(PubnativeRequest.Parameters.ASSET_FIELDS, assets);
         }
 
-        if(!mRequestParameters.containsKey(Parameters.META_FIELDS)) {
-            String[] metas = new String[] {
-                    "revenuemodel"
+        if (!mRequestParameters.containsKey(Parameters.META_FIELDS)) {
+            String[] metas = new String[]{
+                    PubnativeMeta.REVENUE_MODEL,
+                    PubnativeMeta.CONTENT_INFO
             };
             setParameterArray(PubnativeRequest.Parameters.META_FIELDS, metas);
         }
@@ -310,6 +332,51 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
         } else {
             mRequest = new PubnativeHttpRequest();
             mRequest.start(mContext, url, this);
+        }
+    }
+
+    protected boolean isCoppaModeEnabled() {
+        boolean result = false;
+        String coppa = mRequestParameters.get(Parameters.COPPA);
+        if (!TextUtils.isEmpty(coppa)) {
+            result = coppa.equalsIgnoreCase("1");
+        }
+        return result;
+    }
+
+    protected void processStream(String result) {
+
+        Log.v(TAG, "processStream");
+        try {
+
+            PubnativeAPIV3ResponseModel apiResponseModel = new Gson().fromJson(result, PubnativeAPIV3ResponseModel.class);
+
+            if (apiResponseModel == null) {
+
+                // PARSE ERROR
+                invokeOnFail(new Exception("PubnativeRequest - Parse error"));
+
+            } else if (PubnativeAPIV3ResponseModel.Status.OK.equals(apiResponseModel.status)) {
+                // STATUS 'OK'
+                List<PubnativeAdModel> resultModels = null;
+                if (apiResponseModel.ads != null) {
+                    for (PubnativeAPIV3AdModel adModel : apiResponseModel.ads) {
+                        if (resultModels == null) {
+                            resultModels = new ArrayList<PubnativeAdModel>();
+                        }
+                        resultModels.add(PubnativeAdModel.create(mContext, adModel));
+                    }
+                }
+                invokeOnSuccess(resultModels);
+
+            } else {
+                // STATUS 'ERROR'
+                invokeOnFail(new Exception("PubnativeRequest - Server error: " + apiResponseModel.error_message));
+            }
+
+        } catch (Exception exception) {
+
+            invokeOnFail(exception);
         }
     }
 
@@ -348,29 +415,20 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
     }
 
     @Override
-    public void onPubnativeHttpRequestFinish(PubnativeHttpRequest request, String result) {
+    public void onPubnativeHttpRequestFinish(PubnativeHttpRequest request, String result, int statusCode) {
 
         Log.v(TAG, "onPubnativeHttpRequestFinish");
-        try {
-            PubnativeAPIV3ResponseModel apiResponseModel = new Gson().fromJson(result, PubnativeAPIV3ResponseModel.class);
-            if (apiResponseModel == null) {
-                invokeOnFail(new Exception("PubnativeRequest - Error: Response JSON error"));
-            } else if (PubnativeAPIV3ResponseModel.Status.OK.equals(apiResponseModel.status)) {
-                List<PubnativeAdModel> resultModels = null;
-                if (apiResponseModel.ads != null) {
-                    for (PubnativeAPIV3AdModel adModel : apiResponseModel.ads) {
-                        if (resultModels == null) {
-                            resultModels = new ArrayList<PubnativeAdModel>();
-                        }
-                        resultModels.add(PubnativeAdModel.create(mContext, adModel));
-                    }
-                }
-                invokeOnSuccess(resultModels);
-            } else {
-                invokeOnFail(new Exception("PubnativeRequest - Error: Server error: " + apiResponseModel.error_message));
-            }
-        } catch (Exception exception) {
-            invokeOnFail(exception);
+
+        if (PubnativeHttpRequest.HTTP_OK == statusCode
+            || PubnativeHttpRequest.HTTP_INVALID_REQUEST == statusCode) {
+
+            // STATUS CODE VALID
+            processStream(result);
+
+        } else {
+
+            // STATUS CODE INVALID
+            invokeOnFail(new Exception("PubnativeRequest - Response error: " + statusCode));
         }
     }
 
@@ -389,7 +447,7 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
     public void onAdvertisingIdClientFinish(AdvertisingIdClient.AdInfo adInfo) {
 
         Log.v(TAG, "onAdvertisingIdClientFinish");
-        if (adInfo != null && !adInfo.isLimitAdTrackingEnabled()) {
+        if (adInfo != null && !adInfo.isLimitAdTrackingEnabled() && !isCoppaModeEnabled()) {
             String advertisingId = adInfo.getId();
             mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID, advertisingId);
             mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID_SHA1, Crypto.sha1(advertisingId));

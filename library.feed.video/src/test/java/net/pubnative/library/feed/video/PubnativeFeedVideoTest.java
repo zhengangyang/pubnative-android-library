@@ -3,12 +3,10 @@ package net.pubnative.library.feed.video;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.View;
 
-import net.pubnative.library.feed.video.PubnativeFeedVideo;
 import net.pubnative.library.request.PubnativeRequest;
 import net.pubnative.library.request.model.PubnativeAdModel;
-import net.pubnative.library.tracking.PubnativeVisibilityTracker;
+import net.pubnative.library.widget.PubnativeContentInfoWidget;
 import net.pubnative.player.VASTPlayer;
 
 import org.junit.Test;
@@ -27,7 +25,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = net.pubnative.library.BuildConfig.class,
@@ -89,6 +86,7 @@ public class PubnativeFeedVideoTest {
         video.mListener = listener;
         VASTPlayer player = new VASTPlayer(Robolectric.buildActivity(Activity.class).create().get());
         video.mVASTPlayer = spy(player);
+        video.mContentInfo = spy(new PubnativeContentInfoWidget(RuntimeEnvironment.application.getApplicationContext()));
         PubnativeRequest request = mock(PubnativeRequest.class);
         video.onPubnativeRequestSuccess(request, ads);
         verify(video).startVisibilityTracking();

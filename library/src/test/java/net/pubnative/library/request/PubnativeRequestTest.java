@@ -27,14 +27,16 @@ import android.content.Context;
 
 import net.pubnative.library.BuildConfig;
 import net.pubnative.library.PubnativeTestUtils;
+import net.pubnative.library.network.PubnativeHttpRequest;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,12 +48,12 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class,
         sdk = 21)
 public class PubnativeRequestTest {
 
-    Context applicationContext;
+    private Context applicationContext;
 
     @Before
     public void setUp() {
@@ -189,22 +191,23 @@ public class PubnativeRequestTest {
     @Test
     public void testOnResponseSuccess() {
 
-        String response = PubnativeTestUtils.getResponseJSON("success.json");
+        String result = PubnativeTestUtils.getResponseJSON("success.json");
         PubnativeRequest.Listener listener = spy(PubnativeRequest.Listener.class);
         PubnativeRequest request = spy(PubnativeRequest.class);
         request.mListener = listener;
-        request.onPubnativeHttpRequestFinish(null, response);
+        request.onPubnativeHttpRequestFinish(null, result, PubnativeHttpRequest.HTTP_OK);
         verify(listener, times(1)).onPubnativeRequestSuccess(eq(request), any(List.class));
     }
 
     @Test
     public void testOnResponseWithInvalidData() {
 
-        String response = PubnativeTestUtils.getResponseJSON("failure.json");
+
+        String result = PubnativeTestUtils.getResponseJSON("failure.json");
         PubnativeRequest.Listener listener = spy(PubnativeRequest.Listener.class);
         PubnativeRequest request = spy(PubnativeRequest.class);
         request.mListener = listener;
-        request.onPubnativeHttpRequestFinish(null, response);
+        request.onPubnativeHttpRequestFinish(null, result, PubnativeHttpRequest.HTTP_INVALID_REQUEST);
         verify(listener, times(1)).onPubnativeRequestFailed(eq(request), any(Exception.class));
     }
 
@@ -214,7 +217,7 @@ public class PubnativeRequestTest {
         PubnativeRequest.Listener listener = spy(PubnativeRequest.Listener.class);
         PubnativeRequest request = spy(PubnativeRequest.class);
         request.mListener = listener;
-        request.onPubnativeHttpRequestFinish(null, null);
+        request.onPubnativeHttpRequestFinish(null, null, 0);
         verify(listener, times(1)).onPubnativeRequestFailed(eq(request), any(Exception.class));
     }
 
@@ -227,5 +230,18 @@ public class PubnativeRequestTest {
         request.mListener = listener;
         request.onPubnativeHttpRequestFail(null, error);
         verify(listener, times(1)).onPubnativeRequestFailed(eq(request), eq(error));
+    }
+
+    @Test
+    public void setCoppaMode_enable_shouldAvoidSettingSomeDefaultParameters() {
+        PubnativeRequest request = spy(PubnativeRequest.class);
+        request.mContext = this.applicationContext;
+        request.setCoppaMode(true);
+        request.setDefaultParameters();
+        assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.LAT)).isFalse();
+        assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.LONG)).isFalse();
+        assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.ANDROID_ADVERTISER_ID)).isFalse();
+        assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.ANDROID_ADVERTISER_ID_MD5)).isFalse();
+        assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.ANDROID_ADVERTISER_ID_SHA1)).isFalse();
     }
 }

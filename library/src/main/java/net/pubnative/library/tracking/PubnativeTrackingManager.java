@@ -34,6 +34,7 @@ import com.google.gson.reflect.TypeToken;
 import net.pubnative.library.network.PubnativeHttpRequest;
 import net.pubnative.library.tracking.model.PubnativeTrackingURLModel;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,7 +108,7 @@ public class PubnativeTrackingManager {
                         }
 
                         @Override
-                        public void onPubnativeHttpRequestFinish(PubnativeHttpRequest request, String result) {
+                        public void onPubnativeHttpRequestFinish(PubnativeHttpRequest request, String result, int statusCode) {
 
                             Log.v(TAG, "onPubnativeHttpRequestFinish" + result);
                             sIsTracking = false;
@@ -117,7 +118,7 @@ public class PubnativeTrackingManager {
                         @Override
                         public void onPubnativeHttpRequestFail(PubnativeHttpRequest request, Exception exception) {
 
-                            Log.e(TAG, "onPubnativeHttpRequestFail: " + exception);
+                            Log.e(TAG, "onPubnativeHttpRequestFail", exception);
                             // Since this failed, we re-enqueue it
                             enqueueItem(context, SHARED_FAILED_LIST, model);
                             sIsTracking = false;

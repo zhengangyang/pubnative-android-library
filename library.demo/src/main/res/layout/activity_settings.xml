@@ -11,27 +11,11 @@
         android:layout_height="wrap_content"
         >
 
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="APP_TOKEN"
-            android:id="@+id/activity_settings_text_app_token"
-            android:textSize="18dp"
-            android:background="@android:color/white"
-            android:editable="true"
-            android:padding="5dp"
-            android:layout_below="@+id/textView2"
-            android:layout_marginTop="10dp"
-            android:enabled="true"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:textColor="#2e2e2e"/>
-
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="APP TOKEN"
-            android:id="@+id/textView2"
+            android:text="@string/action_settings_apptoken"
+            android:id="@+id/activity_settings_appToken"
             android:textColor="@android:color/white"
             android:gravity="center"
             android:padding="5dp"
@@ -39,12 +23,57 @@
             android:textStyle="bold"
             android:layout_alignParentTop="true"/>
 
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/action_settings_apptoken"
+            android:id="@+id/activity_settings_appToken_edit"
+            android:textSize="18dp"
+            android:background="@android:color/white"
+            android:editable="true"
+            android:padding="5dp"
+            android:layout_below="@+id/activity_settings_appToken"
+            android:layout_marginTop="10dp"
+            android:enabled="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:textColor="#2e2e2e"/>
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/action_settings_zoneid"
+            android:id="@+id/activity_settings_zoneId"
+            android:layout_below="@id/activity_settings_appToken_edit"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            android:padding="5dp"
+            android:textSize="20dp"
+            android:textStyle="bold"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/action_settings_zoneid"
+            android:id="@+id/activity_settings_zoneId_edit"
+            android:textSize="18dp"
+            android:background="@android:color/white"
+            android:editable="true"
+            android:padding="5dp"
+            android:layout_below="@+id/activity_settings_zoneId"
+            android:layout_marginTop="10dp"
+            android:enabled="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:textColor="#2e2e2e"/>
+
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Done"
             android:id="@+id/activity_settings_btn_done"
-            android:layout_below="@+id/activity_settings_text_app_token"
+            android:layout_below="@+id/activity_settings_zoneId_edit"
             android:layout_marginTop="20dp"
             android:onClick="onDoneClick"/>
 

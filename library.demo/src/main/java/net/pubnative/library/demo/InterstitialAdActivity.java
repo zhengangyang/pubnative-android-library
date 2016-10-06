@@ -6,8 +6,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
 
-import net.pubnative.library.interstitial.PubnativeInterstitial;
 import net.pubnative.library.demo.utils.Settings;
+import net.pubnative.library.interstitial.PubnativeInterstitial;
 
 public class InterstitialAdActivity extends Activity implements PubnativeInterstitial.Listener {
 
@@ -29,7 +29,7 @@ public class InterstitialAdActivity extends Activity implements PubnativeInterst
         mLoaderContainer.setVisibility(View.VISIBLE);
         PubnativeInterstitial interstitial = new PubnativeInterstitial();
         interstitial.setListener(this);
-        interstitial.load(this, Settings.getAppToken());
+        interstitial.load(this, Settings.getAppToken(), Settings.getZoneId());
     }
 
     //==============================================================================================

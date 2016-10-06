@@ -45,55 +45,55 @@ public class MainActivity extends Activity {
 
         Log.v(TAG, "onNativeClick");
         // Launch native activity
-        Intent intent = new Intent(this, NativeAdActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(this, NativeAdActivity.class));
     }
 
     public void onSettingsClick(View view) {
 
         Log.v(TAG, "onSettingsClick");
         // Launch native activity
-        Intent intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(this, SettingsActivity.class));
     }
 
     public void onInterstitialClick(View view) {
 
         Log.v(TAG, "onInterstitialClick");
         // Launch interstitial activity
-        Intent intent = new Intent(this, InterstitialAdActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(this, InterstitialAdActivity.class));
     }
 
     public void onBannerClick(View view) {
 
         Log.v(TAG, "onBannerClick");
         // Launch interstitial activity
-        Intent intent = new Intent(this, BannerActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(this, BannerActivity.class));
     }
 
     public void onInFeedBannerClick(View view) {
 
         Log.v(TAG, "onInFeedBannerClick");
         // Launch InFeedBanner activity
-        Intent intent = new Intent(this, InFeedBannerActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(this, InFeedBannerActivity.class));
     }
 
     public void onVideoClick(View view) {
 
         Log.v(TAG, "onVideoClick");
         // Launch VideoAd activity
-        Intent intent = new Intent(this, VideoAdActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(this, VideoAdActivity.class));
     }
 
     public void onFeedVideoClick(View view) {
 
         Log.v(TAG, "onFeedVideoClick");
         // Launch FeedVideo activity
-        Intent intent = new Intent(this, InFeedVideoActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(this, InFeedVideoActivity.class));
+    }
+
+    public void onAssetLayoutClick(View view) {
+
+        Log.v(TAG, "onAssetLayoutClick");
+        // Launch AssetLayout activity
+        startActivity(new Intent(this, AssetLayoutActivity.class));
     }
 }

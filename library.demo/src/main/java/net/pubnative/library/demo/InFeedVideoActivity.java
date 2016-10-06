@@ -57,7 +57,7 @@ public class InFeedVideoActivity extends InFeedActivity implements PubnativeFeed
 
         mFeedVideo = new PubnativeFeedVideo();
         mFeedVideo.setListener(this);
-        mFeedVideo.load(this, Settings.getAppToken());
+        mFeedVideo.load(this, Settings.getAppToken(), Settings.getZoneId());
     }
 
     @Override

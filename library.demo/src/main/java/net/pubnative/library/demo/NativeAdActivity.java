@@ -40,6 +40,7 @@ import com.squareup.picasso.Picasso;
 import net.pubnative.library.demo.utils.Settings;
 import net.pubnative.library.request.PubnativeRequest;
 import net.pubnative.library.request.model.PubnativeAdModel;
+import net.pubnative.library.widget.PubnativeContentInfoWidget;
 
 import java.util.List;
 
@@ -52,6 +53,7 @@ public class NativeAdActivity extends Activity implements PubnativeRequest.Liste
     // Settings
     private CheckBox       mCustomLoaderEnabled;
     private CheckBox       mCachingEnabled;
+    private CheckBox       mCoppaEnabled;
     // Loader
     private View           mCustomLoaderView;
     private View           mCustomLoaderSpiner;
@@ -61,7 +63,9 @@ public class NativeAdActivity extends Activity implements PubnativeRequest.Liste
     private TextView       mCTA;
     private ImageView      mIcon;
     private ImageView      mBanner;
+    private ImageView      mAdChoiceIcon;
     private PubnativeAdModel mCurrentAd;
+    private PubnativeContentInfoWidget mContentInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,9 +79,18 @@ public class NativeAdActivity extends Activity implements PubnativeRequest.Liste
         mCTA = (TextView) findViewById(R.id.activity_native_text_cta);
         mIcon = (ImageView) findViewById(R.id.activity_native_image_icon);
         mBanner = (ImageView) findViewById(R.id.activity_native_image_banner);
+        mAdChoiceIcon = (ImageView) findViewById(R.id.pubnative_adchoice_icon);
+        mContentInfo = (PubnativeContentInfoWidget) findViewById(R.id.pubnative_content_info);
+        mContentInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mContentInfo.openLayout();
+            }
+        });
 
         mCustomLoaderEnabled = (CheckBox) findViewById(R.id.activity_native_custom_loader);
         mCachingEnabled = (CheckBox) findViewById(R.id.activity_native_caching_enable);
+        mCoppaEnabled = (CheckBox) findViewById(R.id.activity_native_coppa_enable);
         mCustomLoaderView = findViewById(R.id.activity_native_container_loader);
         mCustomLoaderSpiner = findViewById(R.id.activity_native_container_loader_square);
     }
@@ -97,6 +110,12 @@ public class NativeAdActivity extends Activity implements PubnativeRequest.Liste
 
         PubnativeRequest request = new PubnativeRequest();
         request.setParameter(PubnativeRequest.Parameters.APP_TOKEN, Settings.getAppToken());
+        request.setParameter(PubnativeRequest.Parameters.ZONE_ID, Settings.getZoneId());
+        if (mCoppaEnabled.isChecked()) {
+            request.setCoppaMode(true);
+        } else {
+            request.setCoppaMode(false);
+        }
         request.start(this, this);
     }
     //==============================================================================================
@@ -116,8 +135,17 @@ public class NativeAdActivity extends Activity implements PubnativeRequest.Liste
             mCTA.setText(mCurrentAd.getCtaText());
             Picasso.with(this).load(mCurrentAd.getIconUrl()).into(mIcon);
             Picasso.with(this).load(mCurrentAd.getBannerUrl()).into(mBanner);
+            mContentInfo.setIconUrl(mCurrentAd.getContentInfoIconUrl());
+            mContentInfo.setIconClickUrl(mCurrentAd.getContentInfoLink());
+            mContentInfo.setContextText(mCurrentAd.getContentInfoText());
+            mContentInfo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mContentInfo.openLayout();
+                }
+            });
             Log.v(TAG, "CUSTOM SPINNER " + mCustomLoaderEnabled.isChecked());
-            mCurrentAd.setUseCaching(mCachingEnabled.isChecked());
+            mCurrentAd.setUseClickCaching(mCachingEnabled.isChecked());
             mCurrentAd.startTracking(mAdContainer, this);
             mAdContainer.setVisibility(View.VISIBLE);
         } else {

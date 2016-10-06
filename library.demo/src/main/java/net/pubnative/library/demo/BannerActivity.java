@@ -61,6 +61,7 @@ public class BannerActivity extends Activity implements PubnativeBanner.Listener
         mBanner.setListener(this);
         mBanner.load(this,
                      Settings.getAppToken(),
+                     Settings.getZoneId(),
                      getBannerSize(selectedSizeId),
                      getBannerPosition(selectedPositionId)
                     );

@@ -46,9 +46,19 @@ public class PubnativeAPIV3DataModel implements Serializable {
         return getNumberField("number");
     }
 
-    public String getURL() {
+    public String getUrl() {
 
         return getStringField("url");
+    }
+
+    public String getLink() {
+
+        return getStringField("link");
+    }
+
+    public String getIconUrl() {
+
+        return getStringField("icon");
     }
 
     public String getStringField(String field) {

@@ -42,6 +42,7 @@ import net.pubnative.library.request.PubnativeAsset;
 import net.pubnative.library.request.PubnativeRequest;
 import net.pubnative.library.request.model.PubnativeAdModel;
 import net.pubnative.library.tracking.PubnativeVisibilityTracker;
+import net.pubnative.library.widget.PubnativeContentInfoWidget;
 import net.pubnative.player.VASTParser;
 import net.pubnative.player.VASTPlayer;
 import net.pubnative.player.model.VASTModel;
@@ -69,9 +70,11 @@ public class PubnativeFeedVideo implements Parcelable,
     protected boolean                     mIsVideoPlaying;
     protected boolean                     mIsTrackingWaiting;
     protected boolean                     mIsAlreadyShown;
+    protected boolean                     mIsCoppaModeEnabled;
     protected PubnativeVisibilityTracker  mVisibilityTracker;
     protected VASTModel                   mVASTModel;
     protected Target                      mBannerTarget;
+    protected PubnativeContentInfoWidget  mContentInfo;
 
     // Video view
     protected VASTPlayer mVASTPlayer;
@@ -159,12 +162,35 @@ public class PubnativeFeedVideo implements Parcelable,
     }
 
     /**
+     * Sets COPPA mode to the status enabled in the parameter
+     *
+     * @param enabled true if you want to enable COPPA mode
+     */
+    public void setCoppaMode(boolean enabled) {
+        Log.v(TAG, "setCoppaMode");
+        mIsCoppaModeEnabled = enabled;
+    }
+
+    /**
      * Starts loading an ad for this video
      *
      * @param context  valid Context
      * @param appToken valid App token where to request the ad from
+     * @deprecated Use load with zoneId instead
      */
     public void load(Context context, String appToken) {
+
+        load(context, appToken, PubnativeRequest.LEGACY_ZONE_ID);
+    }
+
+    /**
+     * Starts loading an ad for this video
+     *
+     * @param context  valid Context
+     * @param appToken valid App token where to request the ad from
+     * @param zoneId valid Zone ID
+     */
+    public void load(Context context, String appToken, String zoneId) {
 
         Log.v(TAG, "load");
         if (mHandler == null) {
@@ -173,10 +199,13 @@ public class PubnativeFeedVideo implements Parcelable,
         if (mListener == null) {
             Log.w(TAG, "load - The ad hasn't a listener");
         }
-        if (TextUtils.isEmpty(appToken)) {
-            invokeLoadFail(new Exception("PubnativeFeedVideo - load error: app token is null or empty"));
-        } else if (context == null) {
-            invokeLoadFail(new Exception("PubnativeFeedVideo - load error: context is null or empty"));
+
+        if (context == null) {
+            invokeLoadFail(new Exception("PubnativeFeedVideo - load error: context is null or empty and required, dropping this call"));
+        } else if (TextUtils.isEmpty(appToken)) {
+            invokeLoadFail(new Exception("PubnativeFeedVideo - load error: app token is null or empty and required, dropping this call"));
+        } else if (TextUtils.isEmpty(zoneId)) {
+            invokeLoadFail(new Exception("PubnativeFeedVideo - load error: zoneId is null or empty and required, dropping this call"));
         } else if (mIsLoading) {
             Log.w(TAG, "load - The ad is being loaded, dropping the call");
         } else if (mIsShown) {
@@ -195,7 +224,9 @@ public class PubnativeFeedVideo implements Parcelable,
             mIsAlreadyShown = false;
             initialize();
             PubnativeRequest request = new PubnativeRequest();
+            request.setCoppaMode(mIsCoppaModeEnabled);
             request.setParameter(PubnativeRequest.Parameters.APP_TOKEN, mAppToken);
+            request.setParameter(PubnativeRequest.Parameters.ZONE_ID, zoneId);
             String[] assets = new String[]{
                     PubnativeAsset.BANNER,
                     PubnativeAsset.VAST
@@ -296,6 +327,9 @@ public class PubnativeFeedVideo implements Parcelable,
 
             mVASTPlayer = (VASTPlayer) container.findViewById(R.id.player);
             mVASTPlayer.setListener(this);
+
+            mContentInfo = new PubnativeContentInfoWidget(mContext);
+            mVASTPlayer.addView(mContentInfo);
         }
     }
 
@@ -352,6 +386,16 @@ public class PubnativeFeedVideo implements Parcelable,
             startVisibilityTracking();
 
             mAdModel = ads.get(0);
+            // set content info data
+            mContentInfo.setIconUrl(mAdModel.getContentInfoIconUrl());
+            mContentInfo.setIconClickUrl(mAdModel.getContentInfoLink());
+            mContentInfo.setContextText(mAdModel.getContentInfoText());
+            mContentInfo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mContentInfo.openLayout();
+                }
+            });
             // Fetch banner
             if (mAdModel.getBannerUrl() != null) {
 

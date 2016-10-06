@@ -1,6 +1,8 @@
 package net.pubnative.library.feed.banner;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -19,6 +21,7 @@ import com.squareup.picasso.Picasso;
 import net.pubnative.library.request.PubnativeAsset;
 import net.pubnative.library.request.PubnativeRequest;
 import net.pubnative.library.request.model.PubnativeAdModel;
+import net.pubnative.library.widget.PubnativeContentInfoWidget;
 
 import java.util.List;
 
@@ -30,19 +33,21 @@ public class PubnativeFeedBanner implements PubnativeRequest.Listener, Pubnative
     protected PubnativeFeedBanner.Listener mListener;
     protected boolean                      mIsLoading;
     protected boolean                      mLoadFailed;
+    protected boolean                      mIsCoppaModeEnabled;
     protected Handler                      mHandler;
     protected PubnativeAdModel             mAdModel;
 
     // InFeed Banner view
-    protected RelativeLayout mInFeedBannerView;
-    protected View           mContainer;
-    protected View           mLoader;
-    protected TextView       mTitle;
-    protected TextView       mDescription;
-    protected ImageView      mIconImage;
-    protected ImageView      mBannerImage;
-    protected Button         mCallToAction;
-    protected RatingBar      mRating;
+    protected RelativeLayout             mInFeedBannerView;
+    protected View                       mContainer;
+    protected View                       mLoader;
+    protected TextView                   mTitle;
+    protected TextView                   mDescription;
+    protected ImageView                  mIconImage;
+    protected ImageView                  mBannerImage;
+    protected PubnativeContentInfoWidget mContentInfo;
+    protected Button                     mCallToAction;
+    protected RatingBar                  mRating;
 
     /**
      * Interface for callbacks related to the in-feed banner
@@ -96,24 +101,51 @@ public class PubnativeFeedBanner implements PubnativeRequest.Listener, Pubnative
     }
 
     /**
+     * Sets COPPA mode to the status enabled in the parameter
+     *
+     * @param enabled true if you want to enable COPPA mode
+     */
+    public void setCoppaMode(boolean enabled) {
+        Log.v(TAG, "setCoppaMode");
+        mIsCoppaModeEnabled = enabled;
+    }
+
+    /**
      * Load Feed Banner
      *
      * @param context  A valid context
      * @param appToken App token
+     * @deprecated Use load method with zoneId instead
      */
     public void load(Context context, String appToken) {
+
+        load(context, appToken, PubnativeRequest.LEGACY_ZONE_ID);
+    }
+
+    /**
+     * Load Feed Banner
+     *
+     * @param context  valid context
+     * @param appToken Valid App token
+     * @param zoneId   Valid Zone id
+     */
+    public void load(Context context, String appToken, String zoneId) {
 
         Log.v(TAG, "load");
         if (mHandler == null) {
             mHandler = new Handler(Looper.getMainLooper());
         }
+
         if (mListener == null) {
             Log.w(TAG, "Listener is not set, try to set listener by setListener(Listener listener) method");
         }
-        if (TextUtils.isEmpty(appToken)) {
-            invokeLoadFail(new Exception("PubnativeFeedBanner - load error: app token is null or empty"));
-        } else if (context == null) {
-            invokeLoadFail(new Exception("PubnativeFeedBanner - load error: context is null or empty"));
+
+        if (context == null) {
+            invokeLoadFail(new Exception("PubnativeFeedBanner - load error: context is null or empty and required, dropping this call"));
+        } else if (TextUtils.isEmpty(appToken)) {
+            invokeLoadFail(new Exception("PubnativeFeedBanner - load error: app token is null or empty and required, dropping this call"));
+        } else if (TextUtils.isEmpty(zoneId)) {
+            invokeLoadFail(new Exception("PubnativeFeedBanner - load error: zoneId is null or empty and required, dropping this call"));
         } else if (mIsLoading) {
             Log.w(TAG, "The ad is being loaded, dropping this call");
         } else if (isReady()) {
@@ -128,7 +160,9 @@ public class PubnativeFeedBanner implements PubnativeRequest.Listener, Pubnative
             mLoader.setVisibility(View.VISIBLE);
 
             PubnativeRequest request = new PubnativeRequest();
+            request.setCoppaMode(mIsCoppaModeEnabled);
             request.setParameter(PubnativeRequest.Parameters.APP_TOKEN, appToken);
+            request.setParameter(PubnativeRequest.Parameters.ZONE_ID, zoneId);
             String[] assets = new String[]{
                     PubnativeAsset.TITLE,
                     PubnativeAsset.DESCRIPTION,
@@ -184,6 +218,7 @@ public class PubnativeFeedBanner implements PubnativeRequest.Listener, Pubnative
             mIconImage = (ImageView) mInFeedBannerView.findViewById(R.id.pubnative_feed_banner_iconImage);
             mBannerImage = (ImageView) mInFeedBannerView.findViewById(R.id.pubnative_feed_banner_bannerImage);
             mCallToAction = (Button) mInFeedBannerView.findViewById(R.id.pubnative_feed_banner_button);
+            mContentInfo = (PubnativeContentInfoWidget) mInFeedBannerView.findViewById(R.id.pubnative_content_info);
         }
     }
 
@@ -309,6 +344,16 @@ public class PubnativeFeedBanner implements PubnativeRequest.Listener, Pubnative
                        invokeLoadFail(new Exception("Icon loading error"));
                    }
                });
+
+        mContentInfo.setIconUrl(mAdModel.getContentInfoIconUrl());
+        mContentInfo.setIconClickUrl(mAdModel.getContentInfoLink());
+        mContentInfo.setContextText(mAdModel.getContentInfoText());
+        mContentInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mContentInfo.openLayout();
+            }
+        });
     }
 
     @Override

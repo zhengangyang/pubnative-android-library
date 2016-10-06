@@ -1,7 +1,6 @@
 package net.pubnative.library.interstitial;
 
 import android.app.Activity;
-import android.os.Handler;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

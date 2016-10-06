@@ -1,7 +1,6 @@
 package net.pubnative.library.demo;
 
 import android.app.Activity;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,7 +8,6 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import net.pubnative.library.demo.utils.Settings;
-import net.pubnative.library.interstitial.PubnativeInterstitial;
 import net.pubnative.library.video.PubnativeVideo;
 
 public class VideoAdActivity extends Activity implements PubnativeVideo.Listener {
@@ -35,7 +33,7 @@ public class VideoAdActivity extends Activity implements PubnativeVideo.Listener
 
         mVideo = new PubnativeVideo();
         mVideo.setListener(this);
-        mVideo.load(this, Settings.getAppToken());
+        mVideo.load(this, Settings.getAppToken(), Settings.getZoneId());
     }
 
     private void showToast(String message) {

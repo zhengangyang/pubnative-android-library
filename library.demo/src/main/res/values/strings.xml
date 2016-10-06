@@ -4,10 +4,18 @@
     <string name="text_formats">Formats</string>
 
     <string name="action_settings">SETTINGS</string>
+    <string name="action_settings_apptoken">APP TOKEN</string>
+    <string name="action_settings_zoneid">ZONE ID</string>
     <string name="action_native">Native</string>
     <string name="action_interstitial">Interstitial</string>
     <string name="action_banner">Banner</string>
     <string name="action_feed_banner">InFeed Banner</string>
     <string name="action_video">Video Ad</string>
     <string name="action_feed_video">InFeed Video</string>
+    <string name="action_asset_layout">Asset Group</string>
+
+    <string name="layout_type">Layout Type</string>
+    <string name="small">Small</string>
+    <string name="medium">Medium</string>
+    <string name="large">Large</string>
 </resources>

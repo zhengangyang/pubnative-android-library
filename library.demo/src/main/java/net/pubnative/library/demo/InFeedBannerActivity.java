@@ -1,16 +1,11 @@
 package net.pubnative.library.demo;
 
-import android.app.Activity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
-import android.widget.RelativeLayout;
 
 import net.pubnative.library.demo.utils.Settings;
 import net.pubnative.library.feed.banner.PubnativeFeedBanner;
-import net.pubnative.library.request.model.PubnativeAdModel;
 
 
 public class InFeedBannerActivity extends InFeedActivity implements PubnativeFeedBanner.Listener {
@@ -29,7 +24,7 @@ public class InFeedBannerActivity extends InFeedActivity implements PubnativeFee
             mFeedBanner = new PubnativeFeedBanner();
             mFeedBanner.setListener(this);
         }
-        mFeedBanner.load(this, Settings.getAppToken());
+        mFeedBanner.load(this, Settings.getAppToken(), Settings.getZoneId());
     }
 
     @Override

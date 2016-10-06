@@ -2,6 +2,8 @@ package net.pubnative.library.banner;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -20,6 +22,7 @@ import com.squareup.picasso.Picasso;
 import net.pubnative.library.request.PubnativeAsset;
 import net.pubnative.library.request.PubnativeRequest;
 import net.pubnative.library.request.model.PubnativeAdModel;
+import net.pubnative.library.widget.PubnativeContentInfoWidget;
 
 import java.util.List;
 
@@ -27,23 +30,24 @@ public class PubnativeBanner implements PubnativeRequest.Listener,
                                         PubnativeAdModel.Listener {
 
     public static final String TAG = PubnativeBanner.class.getSimpleName();
-    protected Context               mContext;
-    protected String                mAppToken;
-    protected Size                  mBannerSize;
-    protected Position              mBannerPosition;
-    protected Boolean               mIsLoading = false;
-    protected Boolean               mIsShown = false;
-    protected Listener              mListener;
-    protected PubnativeAdModel      mAdModel;
-    protected Handler               mHandler;
+    protected Context                    mContext;
+    protected Size                       mBannerSize;
+    protected Position                   mBannerPosition;
+    protected boolean                    mIsLoading;
+    protected boolean                    mIsShown;
+    protected boolean                    mIsCoppaModeEnabled;
+    protected Listener                   mListener;
+    protected PubnativeAdModel           mAdModel;
+    protected Handler                    mHandler;
     // Banner view
-    protected ViewGroup             mContainer;
-    protected TextView              mTitle;
-    protected TextView              mDescription;
-    protected ImageView             mIcon;
-    protected RelativeLayout        mBannerView;
-    protected Button                mInstall;
-    protected TextView              mAdText;
+    protected ViewGroup                  mContainer;
+    protected TextView                   mTitle;
+    protected TextView                   mDescription;
+    protected ImageView                  mIcon;
+    protected PubnativeContentInfoWidget mContentInfo;
+    protected RelativeLayout             mBannerView;
+    protected Button                     mInstall;
+    protected TextView                   mAdText;
 
     public enum Size {
         BANNER_50,
@@ -70,8 +74,8 @@ public class PubnativeBanner implements PubnativeRequest.Listener,
         /**
          * Called whenever the banner failed loading an ad
          *
-         * @param banner banner that failed the load
-         * @param exception    exception with the description of the load error
+         * @param banner    banner that failed the load
+         * @param exception exception with the description of the load error
          */
         void onPubnativeBannerLoadFail(PubnativeBanner banner, Exception exception);
 
@@ -116,15 +120,38 @@ public class PubnativeBanner implements PubnativeRequest.Listener,
     }
 
     /**
+     * Sets COPPA mode to the status enabled in the parameter
+     *
+     * @param enabled true if you want to enable COPPA mode
+     */
+    public void setCoppaMode(boolean enabled) {
+        Log.v(TAG, "setCoppaMode");
+        mIsCoppaModeEnabled = enabled;
+    }
+
+    /**
      * Starts loading an ad for this interstitial
      *
-     * @param context context of {@link Activity}, where is banner will show
-     * @param appToken application token from settings
-     * @param bannerSize size of banner
+     * @param context        context of {@link Activity}, where is banner will show
+     * @param appToken       application token from settings
+     * @param bannerSize     size of banner
      * @param bannerPosition banner position on the screen
+     * @deprecated Use load method with zoneId instead
      */
     public void load(Context context, String appToken, Size bannerSize, Position bannerPosition) {
+        load(context, appToken, PubnativeRequest.LEGACY_ZONE_ID, bannerSize, bannerPosition);
+    }
 
+    /**
+     * Starts loading an ad for this interstitial
+     *
+     * @param context        context of {@link Activity}, where is banner will show
+     * @param appToken       application token
+     * @param zoneId         zoneId for the current ad
+     * @param bannerSize     size of banner
+     * @param bannerPosition banner position on the screen
+     */
+    public void load(Context context, String appToken, String zoneId, Size bannerSize, Position bannerPosition) {
         Log.v(TAG, "load");
 
         if (mHandler == null) {
@@ -135,10 +162,12 @@ public class PubnativeBanner implements PubnativeRequest.Listener,
             Log.v(TAG, "load - The ad hasn't a listener");
         }
 
-        if (TextUtils.isEmpty(appToken)) {
-            invokeLoadFail(new Exception("PubnativeBanner - load error: app token is null or empty"));
-        } else if (context == null) {
-            invokeLoadFail(new Exception("PubnativeBanner - load error: context is null or empty"));
+        if (context == null) {
+            invokeLoadFail(new Exception("PubnativeBanner - load error: context is null or empty and required, dropping this call"));
+        } else if (TextUtils.isEmpty(appToken)) {
+            invokeLoadFail(new Exception("PubnativeBanner - load error: app token is null or empty and required, dropping this call"));
+        } else if (TextUtils.isEmpty(zoneId)) {
+            invokeLoadFail(new Exception("PubnativeBanner - load error: zoneId is null or empty and required, dropping this call"));
         } else if (mIsLoading) {
             Log.w(TAG, "load - The ad is loaded or being loaded, dropping this call");
         } else if (mIsShown) {
@@ -147,14 +176,15 @@ public class PubnativeBanner implements PubnativeRequest.Listener,
             invokeLoadFinish();
         } else if (context instanceof Activity) {
             mContext = context;
-            mAppToken = appToken;
             mBannerSize = bannerSize;
             mBannerPosition = bannerPosition;
             mIsLoading = true;
             initialize();
             PubnativeRequest request = new PubnativeRequest();
+            request.setCoppaMode(mIsCoppaModeEnabled);
             request.setParameter(PubnativeRequest.Parameters.APP_TOKEN, appToken);
-            String[] assets = new String[] {
+            request.setParameter(PubnativeRequest.Parameters.ZONE_ID, zoneId);
+            String[] assets = new String[]{
                     PubnativeAsset.TITLE,
                     PubnativeAsset.DESCRIPTION,
                     PubnativeAsset.ICON,
@@ -189,6 +219,15 @@ public class PubnativeBanner implements PubnativeRequest.Listener,
             mDescription.setText(mAdModel.getDescription());
             mInstall.setText(mAdModel.getCtaText());
             Picasso.with(mContext).load(mAdModel.getIconUrl()).into(mIcon);
+            mContentInfo.setIconUrl(mAdModel.getContentInfoIconUrl());
+            mContentInfo.setIconClickUrl(mAdModel.getContentInfoLink());
+            mContentInfo.setContextText(mAdModel.getContentInfoText());
+            mContentInfo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mContentInfo.openLayout();
+                }
+            });
             mAdModel.startTracking(mContainer, mBannerView, this);
             mBannerView.setVisibility(View.VISIBLE);
             invokeShow();
@@ -247,6 +286,7 @@ public class PubnativeBanner implements PubnativeRequest.Listener,
         mIcon = (ImageView) banner.findViewById(R.id.pubnative_banner_image);
         mInstall = (Button) banner.findViewById(R.id.pubnative_banner_button);
         mAdText = (TextView) banner.findViewById(R.id.pubnative_banner_ad);
+        mContentInfo = (PubnativeContentInfoWidget) banner.findViewById(R.id.pubnative_content_info);
 
         mBannerView.setLayoutParams(params);
         mContainer.addView(banner);

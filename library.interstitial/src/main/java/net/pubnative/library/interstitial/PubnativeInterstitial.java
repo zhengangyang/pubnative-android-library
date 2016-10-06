@@ -1,6 +1,8 @@
 package net.pubnative.library.interstitial;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -18,6 +20,7 @@ import com.squareup.picasso.Picasso;
 import net.pubnative.library.request.PubnativeAsset;
 import net.pubnative.library.request.PubnativeRequest;
 import net.pubnative.library.request.model.PubnativeAdModel;
+import net.pubnative.library.widget.PubnativeContentInfoWidget;
 
 import java.util.List;
 
@@ -28,9 +31,9 @@ public class PubnativeInterstitial implements PubnativeRequest.Listener,
     protected Context                        mContext;
     protected PubnativeAdModel               mAdModel;
     protected PubnativeInterstitial.Listener mListener;
-    protected String                         mAppToken;
     protected boolean                        mIsLoading;
     protected boolean                        mIsShown;
+    protected boolean                        mIsCoppaModeEnabled;
     protected WindowManager                  mWindowManager;
     // Interstitial view
     protected RelativeLayout                 mContainer;
@@ -38,6 +41,7 @@ public class PubnativeInterstitial implements PubnativeRequest.Listener,
     protected TextView                       mDescription;
     protected ImageView                      mIcon;
     protected ImageView                      mBanner;
+    protected PubnativeContentInfoWidget     mContentInfo;
     protected RatingBar                      mRating;
     protected TextView                       mCTA;
 
@@ -102,11 +106,33 @@ public class PubnativeInterstitial implements PubnativeRequest.Listener,
     }
 
     /**
+     * Sets COPPA mode to the status enabled in the parameter
+     *
+     * @param enabled true if you want to enable COPPA mode
+     */
+    public void setCoppaMode(boolean enabled) {
+        Log.v(TAG, "setCoppaMode");
+        mIsCoppaModeEnabled = enabled;
+    }
+
+    /**
      * Starts loading an ad for this interstitial
      * @param context valid Context
      * @param appToken valid App token where to request the ad from
+     * @deprecated Use the load method with zone Id parameter instead
      */
     public void load(Context context, String appToken) {
+
+        load(context, appToken, PubnativeRequest.LEGACY_ZONE_ID);
+    }
+
+    /**
+     * Starts loading an ad for this interstitial
+     * @param context valid context
+     * @param appToken valid appToken
+     * @param zoneId valid zoneId
+     */
+    public void load(Context context, String appToken, String zoneId) {
 
         Log.v(TAG, "load");
 
@@ -115,21 +141,24 @@ public class PubnativeInterstitial implements PubnativeRequest.Listener,
         }
 
         if (TextUtils.isEmpty(appToken)) {
-            invokeLoadFail(new Exception("PubnativeInterstitial - load error: app token is null or empty"));
+            invokeLoadFail(new Exception("PubnativeInterstitial - error: app token is null or empty, dropping this call"));
+        } else if (TextUtils.isEmpty(zoneId)) {
+            invokeLoadFail(new Exception("PubnativeInterstitial - error: zoneId is null or empty, dropping this call"));
         } else if (context == null) {
-            invokeLoadFail(new Exception("PubnativeInterstitial - load error: context is null or empty"));
+            invokeLoadFail(new Exception("PubnativeInterstitial - error: context is null or empty, dropping this call"));
         } else if (mIsLoading) {
             Log.w(TAG, "load - The ad is loaded or being loaded, dropping this call");
         } else if (isReady()) {
             invokeLoadFinish();
         } else {
             mContext = context;
-            mAppToken = appToken;
             mIsShown = false;
             mIsLoading = true;
             initialize();
             PubnativeRequest request = new PubnativeRequest();
-            request.setParameter(PubnativeRequest.Parameters.APP_TOKEN, mAppToken);
+            request.setCoppaMode(mIsCoppaModeEnabled);
+            request.setParameter(PubnativeRequest.Parameters.APP_TOKEN, appToken);
+            request.setParameter(PubnativeRequest.Parameters.ZONE_ID, zoneId);
             String[] assets = new String[] {
                     PubnativeAsset.TITLE,
                     PubnativeAsset.DESCRIPTION,
@@ -208,6 +237,15 @@ public class PubnativeInterstitial implements PubnativeRequest.Listener,
         } else {
             mRating.setVisibility(View.GONE);
         }
+        mContentInfo.setIconUrl(mAdModel.getContentInfoIconUrl());
+        mContentInfo.setIconClickUrl(mAdModel.getContentInfoLink());
+        mContentInfo.setContextText(mAdModel.getContentInfoText());
+        mContentInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mContentInfo.openLayout();
+            }
+        });
         WindowManager.LayoutParams params = new WindowManager.LayoutParams();
         params.width = WindowManager.LayoutParams.MATCH_PARENT;
         params.height = WindowManager.LayoutParams.MATCH_PARENT;
@@ -226,6 +264,7 @@ public class PubnativeInterstitial implements PubnativeRequest.Listener,
         mIcon = (ImageView) interstitial.findViewById(R.id.pn_interstitial_icon);
         mBanner = (ImageView) interstitial.findViewById(R.id.pubnative_interstitial_banner);
         mRating = (RatingBar) interstitial.findViewById(R.id.pubnative_interstitial_rating);
+        mContentInfo = (PubnativeContentInfoWidget) interstitial.findViewById(R.id.pubnative_content_info);
         mCTA = (TextView) interstitial.findViewById(R.id.pubnative_interstitial_cta);
         mContainer = new RelativeLayout(mContext) {
 

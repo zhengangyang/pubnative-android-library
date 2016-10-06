@@ -27,6 +27,7 @@
             android:name=".VideoAdActivity"
             android:configChanges="orientation" />
         <activity android:name=".InFeedVideoActivity" />
+        <activity android:name=".AssetLayoutActivity"/>
     </application>
 
 </manifest>

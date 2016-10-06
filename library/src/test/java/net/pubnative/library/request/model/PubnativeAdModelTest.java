@@ -29,7 +29,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
-import net.pubnative.URLDriller;
 import net.pubnative.library.BuildConfig;
 import net.pubnative.library.request.model.api.PubnativeAPIV3AdModel;
 import net.pubnative.library.request.model.api.PubnativeAPIV3DataModel;
@@ -37,11 +36,14 @@ import net.pubnative.library.request.model.api.PubnativeAPIV3DataModel;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.stubbing.Answer;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -51,9 +53,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class,
         sdk = 21)
 public class PubnativeAdModelTest {
@@ -186,6 +187,28 @@ public class PubnativeAdModelTest {
         model.onURLDrillerFinish(url);
 
         verify(model).getLoadingView();
+    }
+
+    @Test
+    public void getAsset_withRightData_returnDataModel() {
+        String assetName = "text";
+        String assetValue = "value";
+
+        PubnativeAPIV3AdModel adModel = spy(PubnativeAPIV3AdModel.class);
+        PubnativeAPIV3DataModel adDataModel = spy(PubnativeAPIV3DataModel.class);
+        PubnativeAdModel model = spy(PubnativeAdModel.class);
+        adDataModel.data = new HashMap<String, String>();
+        adModel.assets = new ArrayList<PubnativeAPIV3DataModel>();
+        adModel.meta = new ArrayList<PubnativeAPIV3DataModel>();
+        adModel.beacons = new ArrayList<PubnativeAPIV3DataModel>();
+        adDataModel.data.put(assetName, assetValue);
+        adDataModel.type = assetName;
+        adModel.assets.add(adDataModel);
+        adModel.meta.add(adDataModel);
+        adModel.beacons.add(adDataModel);
+        model.mData = adModel;
+
+        assertThat(model.getAsset(assetName)).isEqualTo(adDataModel);
     }
 
 }

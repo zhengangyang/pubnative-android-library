@@ -44,6 +44,7 @@ import com.squareup.picasso.Target;
 import net.pubnative.library.request.PubnativeAsset;
 import net.pubnative.library.request.PubnativeRequest;
 import net.pubnative.library.request.model.PubnativeAdModel;
+import net.pubnative.library.widget.PubnativeContentInfoWidget;
 import net.pubnative.player.VASTParser;
 import net.pubnative.player.VASTPlayer;
 import net.pubnative.player.model.VASTModel;
@@ -59,18 +60,19 @@ public class PubnativeVideo implements PubnativeRequest.Listener,
     //==============================================================================================
     // Properties
     //==============================================================================================
-    protected Handler                 mHandler;
-    protected Context                 mContext;
-    protected PubnativeAdModel        mAdModel;
-    protected PubnativeVideo.Listener mListener;
-    protected String                  mAppToken;
-    protected boolean                 mIsLoading;
-    protected boolean                 mIsShown;
-    protected WindowManager           mWindowManager;
+    protected Handler                    mHandler;
+    protected Context                    mContext;
+    protected PubnativeAdModel           mAdModel;
+    protected PubnativeVideo.Listener    mListener;
+    protected boolean                    mIsLoading;
+    protected boolean                    mIsShown;
+    protected boolean                    mIsCoppaModeEnabled;
+    protected WindowManager              mWindowManager;
 
     // Video view
-    protected RelativeLayout          mContainer;
-    protected VASTPlayer              mVASTPlayer;
+    protected RelativeLayout             mContainer;
+    protected VASTPlayer                 mVASTPlayer;
+    protected PubnativeContentInfoWidget mContentInfo;
 
     /**
      * Interface for callbacks related to the video behaviour
@@ -140,11 +142,33 @@ public class PubnativeVideo implements PubnativeRequest.Listener,
     }
 
     /**
+     * Sets COPPA mode to the status enabled in the parameter
+     *
+     * @param enabled true if you want to enable COPPA mode
+     */
+    public void setCoppaMode(boolean enabled) {
+        Log.v(TAG, "setCoppaMode");
+        mIsCoppaModeEnabled = enabled;
+    }
+
+    /**
      * Starts loading an ad for this video
      * @param context valid Context
-     * @param appToken valid App token where to request the ad from
+     * @param appToken valid App token
+     * @deprecated use the load method that includes zoneId instead
      */
     public void load(Context context, String appToken) {
+
+        load(context, appToken, PubnativeRequest.LEGACY_ZONE_ID);
+    }
+
+    /**
+     * Starts loading an ad for this video
+     * @param context valid context
+     * @param appToken valid app token
+     * @param zoneId valid zoneId
+     */
+    public void load(Context context, String appToken, String zoneId) {
 
         Log.v(TAG, "load");
         if (mHandler == null) {
@@ -153,10 +177,12 @@ public class PubnativeVideo implements PubnativeRequest.Listener,
         if (mListener == null) {
             Log.w(TAG, "load - The ad hasn't a listener");
         }
-        if (TextUtils.isEmpty(appToken)) {
-            invokeLoadFail(new Exception("PubnativeVideo - load error: app token is null or empty"));
-        } else if (context == null) {
-            invokeLoadFail(new Exception("PubnativeVideo - load error: context is null"));
+        if (context == null) {
+            invokeLoadFail(new Exception("PubnativeVideo - load error: context is null and required, dropping this call"));
+        } else if (TextUtils.isEmpty(appToken)) {
+            invokeLoadFail(new Exception("PubnativeVideo - load error: app token is null or empty and required, dropping this call"));
+        } else if (TextUtils.isEmpty(zoneId)) {
+            invokeLoadFail(new Exception("PubnativeVideo - load error: zoneId is null or empty and required, dropping this call"));
         } else if (mIsLoading) {
             Log.w(TAG, "load - The ad is being loaded, dropping this call");
         } else if (mIsShown) {
@@ -165,12 +191,13 @@ public class PubnativeVideo implements PubnativeRequest.Listener,
             invokeLoadFinish();
         } else {
             mContext = context;
-            mAppToken = appToken;
             mIsShown = false;
             mIsLoading = true;
             initialize();
             PubnativeRequest request = new PubnativeRequest();
-            request.setParameter(PubnativeRequest.Parameters.APP_TOKEN, mAppToken);
+            request.setCoppaMode(mIsCoppaModeEnabled);
+            request.setParameter(PubnativeRequest.Parameters.APP_TOKEN, appToken);
+            request.setParameter(PubnativeRequest.Parameters.ZONE_ID, zoneId);
             String[] assets = new String[] {
                     PubnativeAsset.BANNER,
                     PubnativeAsset.VAST
@@ -294,6 +321,7 @@ public class PubnativeVideo implements PubnativeRequest.Listener,
         params.addRule(RelativeLayout.CENTER_IN_PARENT);
         mVASTPlayer = (VASTPlayer) rootView.findViewById(R.id.player);
         mVASTPlayer.setListener(this);
+        mContentInfo = (PubnativeContentInfoWidget) rootView.findViewById(R.id.pubnative_content_info);
         mContainer = new RelativeLayout(mContext) {
 
             @Override
@@ -443,6 +471,16 @@ public class PubnativeVideo implements PubnativeRequest.Listener,
             invokeLoadFail(new Exception("PubnativeVideo - load error: error loading resources"));
         } else {
             mAdModel = ads.get(0);
+            // set content info data
+            mContentInfo.setIconUrl(mAdModel.getContentInfoIconUrl());
+            mContentInfo.setIconClickUrl(mAdModel.getContentInfoLink());
+            mContentInfo.setContextText(mAdModel.getContentInfoText());
+            mContentInfo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mContentInfo.openLayout();
+                }
+            });
             mAdModel.startTracking(mVASTPlayer, null, PubnativeVideo.this);
             Picasso.with(mContext).load(mAdModel.getBannerUrl()).fetch(new Callback() {
 

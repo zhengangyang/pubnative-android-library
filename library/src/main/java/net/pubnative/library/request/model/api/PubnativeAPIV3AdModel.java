@@ -34,6 +34,7 @@ public class PubnativeAPIV3AdModel implements Serializable {
     //==============================================================================================
 
     public String                        link;
+    public int                           assetgroupid;
     public List<PubnativeAPIV3DataModel> assets;
     public List<PubnativeAPIV3DataModel> beacons;
     public List<PubnativeAPIV3DataModel> meta;
@@ -54,7 +55,6 @@ public class PubnativeAPIV3AdModel implements Serializable {
     //==============================================================================================
     // Asset
     //==============================================================================================
-
     public PubnativeAPIV3DataModel getAsset(String type) {
 
         return find(type, assets);

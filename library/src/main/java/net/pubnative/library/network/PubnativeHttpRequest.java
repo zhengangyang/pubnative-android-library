@@ -43,6 +43,10 @@ import java.net.URL;
 public class PubnativeHttpRequest {
 
     private static final String   TAG                = PubnativeHttpRequest.class.getSimpleName();
+
+    public static final int HTTP_OK              = HttpURLConnection.HTTP_OK;
+    public static final int HTTP_INVALID_REQUEST = 422;
+
     // Request properties
     protected static     int      sConnectionTimeout = 4000; // 4 seconds
     // Inner
@@ -64,10 +68,11 @@ public class PubnativeHttpRequest {
         /**
          * Called when the HttpRequest has just finished with a valid String response
          *
-         * @param request request that have just finished
-         * @param result  string with the given response from the server
+         * @param request    request that have just finished
+         * @param result     resulting string from the http response
+         * @param statusCode status code from the response
          */
-        void onPubnativeHttpRequestFinish(PubnativeHttpRequest request, String result);
+        void onPubnativeHttpRequestFinish(PubnativeHttpRequest request, String result, int statusCode);
 
         /**
          * Called when the HttpRequest fails, after this method the request will be stopped
@@ -166,26 +171,19 @@ public class PubnativeHttpRequest {
             connection.setDoInput(true);
             // 3. Do request
             connection.connect();
-            int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                InputStream inputStream = connection.getInputStream();
-                String resultString = stringFromInputString(inputStream);
-                if (resultString == null) {
-                    invokeFail(new Exception("PubnativeHttpRequest - Error: invalid response from server"));
-                } else {
-                    invokeFinish(resultString);
-                }
-            } else {
-                invokeFail(new Exception("PubnativeHttpRequest - Error: invalid status code: " + responseCode));
-            }
+
+            int statusCode = connection.getResponseCode();
+            String result = getString(connection.getInputStream());
+
+            invokeFinish(result, statusCode);
+
         } catch (Exception exception) {
             invokeFail(exception);
         }
     }
 
-    protected String stringFromInputString(InputStream inputStream) {
+    protected String getString(InputStream inputStream) {
 
-        Log.v(TAG, "stringFromInputString");
         String result = null;
         BufferedReader bufferReader = null;
         StringBuilder stringBuilder = new StringBuilder();
@@ -196,14 +194,13 @@ public class PubnativeHttpRequest {
                 stringBuilder.append(line);
             }
         } catch (IOException e) {
-            Log.e(TAG, "stringFromInputString - Error:" + e);
+
             stringBuilder = null;
         } finally {
             if (bufferReader != null) {
                 try {
                     bufferReader.close();
                 } catch (IOException e) {
-                    Log.e(TAG, "stringFromInputString - Error:" + e);
                 }
             }
         }
@@ -231,7 +228,7 @@ public class PubnativeHttpRequest {
         });
     }
 
-    protected void invokeFinish(final String result) {
+    protected void invokeFinish(final String result, final int statusCode) {
 
         Log.v(TAG, "invokeFinish");
         mHandler.post(new Runnable() {
@@ -240,7 +237,7 @@ public class PubnativeHttpRequest {
             public void run() {
 
                 if (mListener != null) {
-                    mListener.onPubnativeHttpRequestFinish(PubnativeHttpRequest.this, result);
+                    mListener.onPubnativeHttpRequestFinish(PubnativeHttpRequest.this, result, statusCode);
                 }
             }
         });

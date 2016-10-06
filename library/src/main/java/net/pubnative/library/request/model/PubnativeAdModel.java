@@ -37,6 +37,7 @@ import android.widget.RelativeLayout;
 
 import net.pubnative.URLDriller;
 import net.pubnative.library.request.PubnativeAsset;
+import net.pubnative.library.request.PubnativeMeta;
 import net.pubnative.library.request.model.api.PubnativeAPIV3AdModel;
 import net.pubnative.library.request.model.api.PubnativeAPIV3DataModel;
 import net.pubnative.library.tracking.PubnativeImpressionManager;
@@ -54,23 +55,26 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
                                          URLDriller.Listener,
                                          Serializable {
 
-    private static      String                TAG                    = PubnativeAdModel.class.getSimpleName();
+    private static      String                TAG                         = PubnativeAdModel.class.getSimpleName();
     //Generic Fields
-    protected transient Listener              mListener              = null;
-    protected           boolean               mUseClickLoader        = true;
-    protected           boolean               mUseBackgroundClick    = true;
-    protected           boolean               mUseCaching            = false;
-    protected           PubnativeAPIV3AdModel mData                  = null;
-    protected           List<String>          mUsedAssets            = null;
-    protected           String                mClickOfferUrl         = "";
-    protected           UUID                  mUUID                  = null;
-
+    protected transient Listener              mListener                   = null;
+    protected           Context               mContext                    = null;
+    protected           PubnativeAPIV3AdModel mData                       = null;
+    protected           List<String>          mUsedAssets                 = null;
+    protected           UUID                  mUUID                       = null;
+    // Click
+    protected           boolean               mIsWaitingForClickCache     = false;
+    protected           boolean               mIsClickLoaderEnabled       = true;
+    protected           boolean               mIsClickInBackgroundEnabled = true;
+    protected           boolean               mIsClickCachingEnabled      = false;
+    protected           boolean               mIsClickPreparing           = false;
+    protected           String                mClickFinalURL              = null;
     //Tracking
-    private transient   boolean               mIsImpressionConfirmed = false;
-    private transient   View                  mClickableView         = null;
-    private transient   View                  mAdView                = null;
+    private transient   boolean               mIsImpressionConfirmed      = false;
+    private transient   View                  mClickableView              = null;
+    private transient   View                  mAdView                     = null;
     //Loading View
-    private transient   RelativeLayout        loadingView            = null;
+    private transient   RelativeLayout        loadingView                 = null;
 
     //==============================================================================================
     // Listener
@@ -109,6 +113,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
 
         PubnativeAdModel model = new PubnativeAdModel();
         model.mData = data;
+        model.mContext = context;
         return model;
     }
 
@@ -145,7 +150,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         return getAsset(asset, true);
     }
 
-    protected PubnativeAPIV3DataModel getAsset(String asset, Boolean trackAsset) {
+    protected PubnativeAPIV3DataModel getAsset(String asset, boolean trackAsset) {
 
         Log.v(TAG, "getAsset");
         PubnativeAPIV3DataModel result = null;
@@ -236,7 +241,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         String result = null;
         PubnativeAPIV3DataModel data = getAsset(PubnativeAsset.ICON);
         if (data != null) {
-            result = data.getURL();
+            result = data.getUrl();
         }
         return result;
     }
@@ -263,12 +268,46 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         String result = null;
         PubnativeAPIV3DataModel data = getAsset(PubnativeAsset.BANNER);
         if (data != null) {
-            result = data.getURL();
+            result = data.getUrl();
         }
         return result;
     }
 
     /**
+     * Gets url of the assets (html banner page, standard banner etc.)
+     *
+     * @param asset asset name for which url requested.
+     * @return      valid String with the url value, null if not present.
+     */
+    public String getAssetUrl(String asset) {
+
+        Log.v(TAG, "getAssetUrl");
+        String result = null;
+        PubnativeAPIV3DataModel data = getAsset(asset);
+        if (data != null) {
+            result = data.getUrl();
+        }
+        return result;
+    }
+
+    /**
+     * Gets the asset group id of the ad
+     *
+     * @return int value with the id of the asset group ad, 0 if not present
+     */
+    public int getAssetGroupId(){
+
+        Log.v(TAG, "getAssetGroupId");
+        int result = 0;
+        if (mData == null) {
+            Log.w(TAG, "getAssetGroupId - Error: ad data not present");
+        } else {
+            result = mData.assetgroupid;
+        }
+        return result;
+    }
+
+     /**
      * Gets the click url of the ad
      *
      * @return String value with the url of the click, null if not present
@@ -300,6 +339,46 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
             if (rating != null) {
                 result = rating.intValue();
             }
+        }
+        return result;
+    }
+
+    /**
+     * Gets the AdChoices click link of the ad
+     *
+     * @return valid String with the link value, null if not present
+     */
+    public String getContentInfoLink() {
+        Log.v(TAG, "getContentInfoLink");
+        String result = null;
+        PubnativeAPIV3DataModel data = getMeta(PubnativeMeta.CONTENT_INFO);
+        if (data != null) {
+            result = data.getLink();
+        }
+        return result;
+    }
+
+    /**
+     * Gets the AdChoices icon url of the ad
+     *
+     * @return valid String with the url value, null if not present
+     */
+    public String getContentInfoIconUrl() {
+        Log.v(TAG, "getContentInfoIconUrl");
+        String result = null;
+        PubnativeAPIV3DataModel data = getMeta(PubnativeMeta.CONTENT_INFO);
+        if (data != null) {
+            result = data.getIconUrl();
+        }
+        return result;
+    }
+
+    public String getContentInfoText() {
+        Log.v(TAG, "getContentInfoText");
+        String result = null;
+        PubnativeAPIV3DataModel data = getMeta(PubnativeMeta.CONTENT_INFO);
+        if (data != null) {
+            result = data.getText();
         }
         return result;
     }
@@ -369,7 +448,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
                     PubnativeBeacon beacon = new PubnativeBeacon();
                     beacon.js = data.getStringField("js");
                     beacon.type = beaconType;
-                    beacon.url = data.getURL();
+                    beacon.url = data.getUrl();
                 }
             }
         }
@@ -397,19 +476,19 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
     public void setUseClickLoader(boolean enabled) {
 
         Log.v(TAG, "setUseClickLoader");
-        mUseClickLoader = enabled;
+        mIsClickLoaderEnabled = enabled;
     }
 
-    public void setUseBackgroundClick(boolean enabled) {
+    public void setUseClickInBackground(boolean enabled) {
 
-        Log.v(TAG, "setUseBackgroundClick");
-        mUseBackgroundClick = enabled;
+        Log.v(TAG, "setUseClickInBackground");
+        mIsClickInBackgroundEnabled = enabled;
     }
 
-    public void setUseCaching(boolean enabled) {
+    public void setUseClickCaching(boolean enabled) {
 
-        Log.v(TAG, "setUseCaching");
-        mUseCaching = enabled;
+        Log.v(TAG, "setUseClickCaching");
+        mIsClickCachingEnabled = enabled;
     }
 
     /**
@@ -438,35 +517,69 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         return beaconUrl;
     }
 
-    protected void prepareURL(){
-        mUUID = UUID.randomUUID();
-        String firstReqUrl = getClickUrl() + "&uxc=true&uuid=" + mUUID.toString();
+    /**
+     * This method prepares all possible resources
+     */
+    public void fetch() {
+
+        prepareClickURL();
+    }
+
+    protected void prepareClickURL() {
+
+        if (isRevenueModelCPA() && mIsClickCachingEnabled && mClickFinalURL== null && !mIsClickPreparing) {
+
+            mIsClickPreparing = true;
+            mUUID = UUID.randomUUID();
+            String firstReqUrl = getClickUrl() + "&uxc=true&uuid=" + mUUID.toString();
+            URLDriller driller = new URLDriller();
+            driller.setListener(new URLDriller.Listener() {
+
+                @Override
+                public void onURLDrillerStart(String url) {
+                    //Do nothing
+                }
+
+                @Override
+                public void onURLDrillerRedirect(String url) {
+                    //Do nothing
+                }
+
+                @Override
+                public void onURLDrillerFinish(String url) {
+                    onPrepareClickURLFinish(url);
+                }
+
+                @Override
+                public void onURLDrillerFail(String url, Exception exception) {
+                    onPrepareClickURLFinish(url);
+                }
+            });
+            driller.drill(firstReqUrl);
+        }
+
+    }
+
+    protected void onPrepareClickURLFinish(String url) {
+
+        mClickFinalURL = url;
+        mIsClickPreparing = false;
+        if (mIsWaitingForClickCache) {
+
+            mIsWaitingForClickCache = false;
+            openCachedClick(mContext);
+            hideLoadingView();
+        }
+    }
+
+
+    protected void openCachedClick(Context context) {
+
         URLDriller driller = new URLDriller();
-        driller.setListener(new URLDriller.Listener() {
-
-            @Override
-            public void onURLDrillerStart(String url) {
-                //Do nothing
-            }
-
-            @Override
-            public void onURLDrillerRedirect(String url) {
-                //Do nothing
-            }
-
-            @Override
-            public void onURLDrillerFinish(String url) {
-                Log.v(TAG, "prepareURL - onURLDrillerFinish: " + url);
-                mClickOfferUrl = url;
-            }
-
-            @Override
-            public void onURLDrillerFail(String url, Exception exception) {
-                Log.v(TAG, "prepareURL - onURLDrillerFail: " + exception);
-                mClickOfferUrl = url;
-            }
-        });
-        driller.drill(firstReqUrl);
+        driller.setUserAgent(SystemUtils.getWebViewUserAgent(context));
+        driller.setListener(PubnativeAdModel.this);
+        driller.drill(getClickUrl() + "&cached=true&uuid=" + mUUID.toString());
+        openURL(mClickFinalURL);
     }
 
     //==============================================================================================
@@ -496,7 +609,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
 
         Log.v(TAG, "startTracking");
 
-        if(listener == null) {
+        if (listener == null) {
             Log.w(TAG, "startTracking - listener is null, start tracking without callbacks");
         }
 
@@ -529,9 +642,9 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         } else if (clickableView == null) {
             Log.w(TAG, "startTrackingClicks - Error: click view is null, clicks won't be tracked");
         } else {
-            if (isRevenueModelCPA() && mUseCaching) {
-                prepareURL();
-            }
+
+            prepareClickURL();
+
             mClickableView = clickableView;
             mClickableView.setOnClickListener(new View.OnClickListener() {
 
@@ -539,23 +652,26 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
                 public void onClick(View view) {
 
                     Log.v(TAG, "onClick detected");
+                    if (mIsClickLoaderEnabled) {
+                        showLoadingView();
+                    }
                     invokeOnClick(view);
                     confirmClickBeacons(view.getContext());
-                    if (mUseBackgroundClick) {
-                        if (mUseClickLoader) {
-                            showLoadingView();
-                        }
-                        URLDriller driller = new URLDriller();
-                        driller.setUserAgent(SystemUtils.getWebViewUserAgent(view.getContext()));
-                        driller.setListener(PubnativeAdModel.this);
-                        if (mUseCaching) {
-                            if (isRevenueModelCPA()) {
-                                openURL(mClickOfferUrl);
-                                driller.drill(getClickUrl() + "&cached=true&uuid=" + mUUID.toString());
+
+                    if (mIsClickInBackgroundEnabled) {
+                        
+                        if (mIsClickCachingEnabled) {
+                            
+                            if (mClickFinalURL == null) {
+                                mIsWaitingForClickCache = true;
                             } else {
-                                driller.drill(getClickUrl());
+                                openCachedClick(view.getContext());
                             }
                         } else {
+                            // No CPI offer, so we simply follow redirection and open at the end
+                            URLDriller driller = new URLDriller();
+                            driller.setUserAgent(SystemUtils.getWebViewUserAgent(view.getContext()));
+                            driller.setListener(PubnativeAdModel.this);
                             driller.drill(getClickUrl());
                         }
                     } else {
@@ -572,14 +688,14 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
     public void stopTracking() {
 
         Log.v(TAG, "stopTracking");
-        PubnativeImpressionManager.stopTrackingAll(this);
+        stopTrackingImpression();
         stopTrackingClicks();
     }
 
     protected void stopTrackingImpression() {
 
         Log.v(TAG, "stopTrackingImpression");
-
+        PubnativeImpressionManager.stopTrackingAll(this);
     }
 
     protected void stopTrackingClicks() {
@@ -643,7 +759,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         }
 
         for (PubnativeAPIV3DataModel beaconData : beacons) {
-            String beaconURL = beaconData.getURL();
+            String beaconURL = beaconData.getUrl();
             String beaconJS = beaconData.getStringField("js");
             if (!TextUtils.isEmpty(beaconURL)) {
                 // URL
@@ -774,13 +890,11 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
     public void onURLDrillerFinish(String url) {
 
         Log.v(TAG, "onURLDrillerFinish: " + url);
-        if (mUseCaching) {
-            if (!isRevenueModelCPA()) {
-                openURL(url);
-            }
-        } else {
+
+        if (mClickFinalURL == null) {
             openURL(url);
         }
+
         hideLoadingView();
     }
 
@@ -788,11 +902,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
     public void onURLDrillerFail(String url, Exception exception) {
 
         Log.v(TAG, "onURLDrillerFail: " + exception);
-        if (mUseCaching) {
-            if (!isRevenueModelCPA()) {
-                openURL(url);
-            }
-        } else {
+        if (mClickFinalURL == null) {
             openURL(url);
         }
         hideLoadingView();

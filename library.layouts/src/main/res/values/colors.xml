@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="pubnative_white">@android:color/white</color>
+    <color name="pubnative_title_color">#1d2129</color>
+    <color name="pubnative_btn_green">#779C43</color>
+    <color name="pubnative_sponsored_text_color">@android:color/white</color>
+    <color name="pubnative_sponsored_background_color">#d966006a</color>
+    <color name="pubnative_black">@android:color/black</color>
+    <color name="pubnative_description">#323232</color>
+    <color name="pubnative_semitransparent_black">#33000000</color>
+    <color name="pubnative_shadow_normal">#555555</color>
+</resources>
