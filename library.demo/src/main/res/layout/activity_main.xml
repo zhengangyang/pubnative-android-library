@@ -1,0 +1,68 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    tools:context="net.pubnative.library.sample.MainActivity" >
+
+    <TextView
+        android:id="@+id/settings_text"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:background="@android:color/darker_gray"
+        android:gravity="center"
+        android:text="Settings"
+        android:textAppearance="?android:attr/textAppearanceButton"
+        android:textColor="@android:color/white"
+        android:textSize="20dp" />
+    
+    <ImageView
+        android:id="@+id/pubnative_image"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/settings_text"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        android:src="@drawable/pubnative_logo" />
+
+    <View
+        android:id="@+id/separator_view"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/pubnative_image"
+        android:background="@android:color/darker_gray" />
+
+    <TextView
+        android:id="@+id/interstitial_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/separator_view"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="20dp"
+        android:background="@android:color/darker_gray"
+        android:padding="10dp"
+        android:text="Interstitial"
+        android:textAppearance="?android:attr/textAppearanceButton"
+        android:textColor="@android:color/white" />
+
+    <TextView
+        android:id="@+id/game_list_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/interstitial_view"
+        android:layout_centerHorizontal="true"
+        android:background="@android:color/darker_gray"
+        android:padding="10dp"
+        android:text="Game List"
+        android:textAppearance="?android:attr/textAppearanceButton"
+        android:textColor="@android:color/white" />
+
+</RelativeLayout>

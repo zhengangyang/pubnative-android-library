@@ -1,10 +1,12 @@
 ![ScreenShot](PNLogo.png)
 
 PubNative is an API-based publisher platform dedicated to native advertising which does not require the integration of an Library.
+
 Through PubNative, publishers can request over 20 parameters to enrich their ads and thereby create any number of combinations for unique and truly native ad units.
 
-PubNative Android Library simplifies getting ad images, texts and sending confirmation.\n
-PubNative Interstitials provides ready formats & widgets .
+#pubnative-android-library
+
+pubnative-ios-library is a collection of Open Source tools to implement API based native ads in Android.
 
 ##Contents
 
@@ -12,9 +14,8 @@ PubNative Interstitials provides ready formats & widgets .
 * [Install](#install)
 * [Usage](#usage)
   * [Setup](#usage_setup)
-  * [Custom ads](#usage_custom)
+  * [Native ads](#usage_native)
   * [Predefined ads](#usage_predefined)
-  * [ProGuard](#usage_proguard)
 * [Misc](#misc)
   * [Dependencies](#misc_dependencies)
   * [License](#misc_license)
@@ -25,183 +26,195 @@ PubNative Interstitials provides ready formats & widgets .
 
 * Android 4.0+.
 * An App Token provided in PubNative Dashboard.
-* Google Play Services (https://developer.android.com/google/play-services/index.html)
-* The following permissions in AndroidManifest.xml:
-
-```xml
-<!-- REQUIRED -->
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-<!-- OPTIONAL -->
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-```
+* Google Play Services (https://developer.android.com/google/play-services/index.html) imported in your project
 
 <a name="install"></a>
 # Install
+
 Clone the repository and import the needed projects
 
-* **pubnative-library**: This library handles the basic behaviour to request native ads and build a custom ad view.
-* **pubnative-interstitials**: This library contains to use the pre-built formats.
-
-* Edit your `AndroidManifest.xml` file to add the following activity and meta-data **inside your application tag**
-
+####pubnative-library
+This library handles the basic behaviour to request native ads and build a custom ad view. You will need to add the following activity to your `AndroidManifest.xml` **inside your application tag**
 ``` xml
 <meta-data android:name="com.google.android.gms.version"
            android:value="@integer/google_play_services_version" />
-
-<activity android:name="net.pubnative.interstitials.PubNativeInterstitialsActivity"
-          android:configChanges="keyboardHidden|orientation|screenSize"
-          android:hardwareAccelerated="true"
-          android:taskAffinity="net.pubnative.interstitials"
-          android:theme="@style/Theme.PubNativeInterstitials" />
 ```
 
 <a name="usage"></a>
 # Usage
 
-<a name="usage_setup"></a>
-### Setup
+PubNative library is a lean yet complete library that allow you request and show ads in different ways.
 
-Add the following inside an Activity that will show ads:
+In general, it alows you to request the following ads:
+
+* [Native](#usage_native): Use native ads if you want to manually control requests and fully customize your ads appearance.
+* [Predefined](#usage_predefined): Use predefined for direct usage of the library if you don't want to mess up creating your own ad format.
+
+<a name="usage_native"></a>
+## Native
+
+Basic integration steps are:
+
+1. [Request](#usage_native_request): Using `AdRequest` and `AdRequestListener`
+2. [Show](#usage_native_show): Using `NativeAdRenderer` and `AdRendererListener`
+3. [Confirm impression](#usage_native_confirm_impression)
+
+<a name="usage_native_request"></a>
+### 1) Request
+
+You will need to create an `AdRequest`, add all the required parameters to it and start it with a listener for the results specifying which endpoint you want to request to `NATIVE` or `VIDEO`.
+
+For simplier usage we're providing an interface `Request` that contains all valid parameters for a request.
+
+```java
+AdRequest request = new AdRequest(context);
+request.setParameter(Request.APP_TOKEN, "----YOUR_APP_TOKEN_HERE---");
+request.setParameter(Request.AD_COUNT, "5");
+request.setParameter(Request.ICON_SIZE, "200x200");
+request.setParameter(Request.BANNER_SIZE, "1200x627");
+request.start(Endpoint.NATIVE, new AdRequestListener()
+{
+    @Override
+    public void onAdRequestStarted(AdRequest request)
+    {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void onAdRequestFinished(AdRequest request, ArrayList<? extends NativeAdModel> ads)
+    {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void onAdRequestFailed(AdRequest request, Exception ex)
+    {
+        // TODO Auto-generated method stub
+    }
+});
+```
+
+<a name="usage_native_show"></a>
+### 2) Show
+
+Once the ads are downloaded, you can use them manually by accessing properties inside the model. Although, we've developed a tool that will work for most cases `NativeAdRenderer` for Native ads.
+
+It downloads the needed resources, ensures that the data is correctly downloaded and sets it into the view.
+
+Simply create a `NativeAdRenderer` for your custom view and render it with an AdRendererListener.
+
+```java
+NativeAdRenderer renderer = new NativeAdRenderer(context);
+renderer.titleView = (TextView) view.findViewById(R.id.<YOUR_TITLE_VIEW_ID>);
+renderer.descriptionView = (TextView) view.findViewById(R.id.<YOUR_DESCRIPTION_VIEW_ID>);
+renderer.bannerView = (TextView) view.findViewById(R.id.<YOUR_BANNER_VIEW_ID>);
+renderer.iconView = (ImageView) view.findViewById(R.id.<YOUR_ICON_VIEW_ID>);
+renderer.downloadView = (TextView) view.findViewById(R.id.<YOUR_CTA_VIEW_ID>);
+renderer.render(<YOU_AD_MODEL>, new AdRendererListener()
+{
+    @Override
+    public void onAdRenderStarted(AdRenderer renderer)
+    {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void onAdRenderFailed(AdRenderer renderer, Exception e)
+    {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void onAdRenderFinished(AdRenderer renderer)
+    {
+        // TODO Auto-generated method stub
+    }
+});
+```
+
+<a name="usage_native_confirm_impression"></a>
+### 3) Confirm impression
+
+For confirming impressions, the `NativeAdModel` contains the tools to confirm it, just specify the view that contains that ad and the library will automatically confirm the impression as soon as the view is shown.
+
+```java
+ad.confirmImpressionAutomatically(context, <YOUR_AD_CONTAINER_VIEW>);
+```
+
+<a name="usage_predefined"></a>
+## Predefined ads
+
+If you're going to use predefined ads, you'll need to add a an Activity to your `AndroidManifest.xml` **inside your application tag**
+
+```xml
+<activity android:name="net.pubnative.library.predefined.PubnativeActivity"
+          android:configChanges="keyboardHidden|orientation|screenSize"
+          android:hardwareAccelerated="true"
+          android:taskAffinity="net.pubnative.library.predefined"/>
+```
+
+It's also required to inform the Pubnative interface about the Activity callbacks, dd the following inside your Activity:
+
 ```java
 @Override
 protected void onPause()
 {
 	super.onPause();
-	PubNative.onPause();
+	Pubnative.onPause();
 }
 
 @Override
 protected void onResume()
 {
 	super.onResume();
-	PubNative.onResume();
+	Pubnative.onResume();
 }
 
 @Override
 protected void onDestroy()
 {
 	super.onDestroy();
-	PubNative.onDestroy();
+	Pubnative.onDestroy();
 }
 ```
 
-<a name="usage_custom"></a>
-### Custom ads
+Using the `Pubnative` interface you will have access to several predefined formats in case that you don't want to mess around by creating your own ad formats.
 
-In short these are the steps that you need to do:
+If you would like to know about the ad behaviour just specify a `PubnativeActivityListener` or pass null to the `show method`.
 
-* Create and configure a `NativeAdHolder`, this will be used to populate your view once the request is over.
-* **(OPTIONAL)** Set up a listener for the Ad Loading workflow
-* Create and configure your API request with `AdRequest`.
-  * Create the request with your AppToken and selecting one kind of Endpoint (NATIVE/VIDEO) that will return a native ad or a native ad containing a VAST video inside.
-  * Invoke `fillInDefaults(Context context)` method to set up basic API request data.
-  * Fill params for a more specific request using `setParam(String key, String value)`. All valid parameters are described in the [Pubnative Client API Wiki](https://pubnative.atlassian.net/wiki/display/PUB/Client+API#ClientAPI-3.Request)
+Available types are:
+
+* Pubnative.FullScreen.INTERSTITIAL: Show a single fullscreen offer
+* Punative.FullScreen.GAME_LIST: Shows a fullscreen list of 10 offers
 
 ```java
-NativeAdHolder holder = null;
-public void requestAd()
+Pubnative.show(context, <SELECTED_TYPE>, "<YOUR_APP_TOKEN>",  new PubnativeActivityListener()
 {
-  // Create a NativeAdHolder and set up all the item view ID's that you need
-  // Keep a reference to the holder, since this will contain all the downloaded info
-  holder = new NativeAdHolder(<YOUR_AD_CONTAINER_VIEW>);
-  holder.titleViewId = R.id.<YOUR_TITLE_VIEW_ID>;
-  holder.descriptionViewId = R.id.<YOUR_DESCRIPTION_VIEW_ID>;
-  holder.iconViewId = R.id.<YOUR_ICON_VIEW_ID>;
-  holder.bannerViewId = R.id.<YOUR_BANNER_VIEW_ID>;
-  holder.downloadViewId = R.id.<YOUR_CTA_VIEW_ID>;
-
-
-  AdRequest request = new AdRequest("<YOUR_APP_TOKEN>", APIEndpoint.<SELECTED_ENDPOINT>);
-  request.fillInDefaults(this); // MANDATORY, without this, the request won't work
-
-  // Set up your parameters if needed
-  // request.setParam("<PARAMETER_KEY>", "<PARAMETER_VALUE>");
-
-  //OPTIONAL (Set up a listener)
-  PubNative.setListener(new PubNativeListener()
-  {
     @Override
-    public void onLoaded()
+    public void onPubnativeActivityStarted(String identifier)
     {
-        // Ad is loaded, recommended to show the container here
+        // TODO Auto-generated method stub
     }
 
     @Override
-    public void onError(Exception ex)
+    public void onPubnativeActivityFailed(String identifier, Exception exception)
     {
-        // Something happened while loading the ad
+        // TODO Auto-generated method stub
     }
-  });
 
-  PubNative.showAd(request, holder);
-}
+    @Override
+    public void onPubnativeActivityOpened(String identifier)
+    {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void onPubnativeActivityClosed(String identifier)
+    {
+        // TODO Auto-generated method stub
+    }
+});
 ```
-
-Since the library automatically confirms the impression of ads, you will only need to open the ad when you want.
-
-```java
-PubNative.showInPlayStoreViaDialog(<YOUR_CONTEXT>, <YOUR_AD_HOLDER>.ad);
-```
-
-For more examples, check the code under **pubnative-library-tester**
-
-<a name="usage_predefined"></a>
-### Predefined ads
-
-PubNative Library also provides with a simple method to show predefined ads just in case you don't want to mess up customizing your own ad look and feel. The class used to display interstitials is `PubNativeInterstitials`.
-
-* **Initialize** the library caling `init(Context ctx, String appToken)` method prior to any interstitial request.
-* **(OPTIONAL)** Set up a listener to follow up the ad workflow
-* **Request** interstitials with `show(Activity activity, PubNativeInterstitialsType type, int adCount)` interstitial types are:
-  * `PubNativeInterstitialsType.INTERSTITIAL`: Shows a full screen ad
-  * `PubNativeInterstitialsType.VIDEO_INTERSTITIAL`: Shows a full screen video ad
-
-```java
-private boolean pubnativeInitialized = false;
-public void requestPredefinedAd()
-{
-  if(!this.pubnativeInitialized)
-  {
-    this.pubnativeInitialized = true;
-    PubNativeInterstitials.init(<YOUR_CONTEXT>, "<YOUR_APP_TOKEN>");
-    PubNativeInterstitials.addListener(new PubNativeInterstitialsListener(){
-      @Override
-      public void onShown(PubNativeInterstitialsType type)
-      {
-        // The ad has appeared in the screen
-      }
-
-      @Override
-      public void onTapped(NativeAd ad)
-      {
-        // The ad has been tapped by the user, good moment to gift the user :D
-      }
-
-      @Override
-      public void onClosed(PubNativeInterstitialsType type)
-      {
-        // The ad has disappeared from the screen
-      }
-
-      @Override
-      public void onError(Exception ex)
-      {
-        // Something wrong happened
-      }
-    });
-  }
-
-  PubNativeInterstitials.show(<YOUR_ACTIVITY>, PubNativeInterstitialsType.<YOUR_SELECTED_TYPE>, <YOUR_REQUEST_AD_COUNT>);
-}
-```
-
-Please check out pubnative-interstitials-tester for code examples.
-
-<a name="usage_proguard"></a>
-### ProGuard
-
-If using ProGuard, please include pubnative-proguard.cfg.
 
 <a name="misc"></a>
 # Misc
