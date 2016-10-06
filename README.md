@@ -36,7 +36,7 @@ pubnative-android-library is a collection of Open Source tools to implement API 
 Add the following line to your module dependencies
 
 ```java
-compile 'net.pubnative:library:1.4.8'
+compile 'net.pubnative:library:1.4.9'
 
 ```
 
@@ -53,6 +53,17 @@ You will also need to add the following meta-data to your `AndroidManifest.xml` 
 
 <a name="usage"></a>
 # Usage
+
+First of all, ensure to add permissions `INTERNET` and `ACCESS_NETWORK_STATE` permissions to your app manifest .
+Optionally, and recommended is to add `ACCESS_COARSE_LOCATION` as shown below
+
+```xml
+<!--REQUIRED-->
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<!--OPTIONAL-->
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+```
 
 PubNative library is a lean yet complete library that allow you request and show ads in different ways.
 

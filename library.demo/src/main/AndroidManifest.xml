@@ -6,7 +6,11 @@
         android:minSdkVersion="14"
         android:targetSdkVersion="21" />
 
+    <!--REQUIRED-->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!--OPTIONAL-->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
         android:allowBackup="true"
