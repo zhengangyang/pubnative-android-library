@@ -58,7 +58,7 @@ Optionally but not necessary to improve user targeting:
 Add the following line to your module dependencies
 
 ```
-compile 'net.pubnative:library:2.1.0'
+compile 'net.pubnative:library:2.1.1'
 ```
 
 <a name="install_manual"></a>

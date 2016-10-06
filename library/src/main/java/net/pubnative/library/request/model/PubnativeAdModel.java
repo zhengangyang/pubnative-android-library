@@ -292,7 +292,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         int result = 0;
         PubnativeAPIV3DataModel data = getAsset(PubnativeAsset.RATING);
         if (data != null) {
-            Integer rating = data.getNumber();
+            Double rating = data.getNumber();
             if (rating != null) {
                 result = rating.intValue();
             }

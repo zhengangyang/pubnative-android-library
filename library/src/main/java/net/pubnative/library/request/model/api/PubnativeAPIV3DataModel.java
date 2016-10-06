@@ -41,9 +41,9 @@ public class PubnativeAPIV3DataModel implements Serializable {
         return getStringField("tracking");
     }
 
-    public Integer getNumber() {
+    public Double getNumber() {
 
-        return getNumberField("number").intValue();
+        return getNumberField("number");
     }
 
     public String getURL() {
