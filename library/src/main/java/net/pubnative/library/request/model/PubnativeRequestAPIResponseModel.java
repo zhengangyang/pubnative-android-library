@@ -21,39 +21,19 @@
 // SOFTWARE.
 //
 
-package net.pubnative.library.demo;
+package net.pubnative.library.request.model;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
+import java.util.List;
 
-public class MainActivity extends Activity {
+public class PubnativeRequestAPIResponseModel {
 
-    private static final String TAG = MainActivity.class.getName();
+    public String                 status;
+    public String                 error_message;
+    public List<PubnativeAdModel> ads;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public interface Status {
 
-        Log.v(TAG, "onCreate");
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-    }
-
-    public void onNativeClick(View view) {
-
-        Log.v(TAG, "onNativeClick");
-        // Launch native activity
-        Intent intent = new Intent(this, NativeAdActivity.class);
-        startActivity(intent);
-    }
-
-    public void onSettingsClick(View view) {
-
-        Log.v(TAG, "onSettingsClick");
-        // Launch native activity
-        Intent intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
+        String ERROR = "error";
+        String OK    = "ok";
     }
 }

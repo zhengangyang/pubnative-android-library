@@ -24,36 +24,31 @@
 package net.pubnative.library.demo;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
-public class MainActivity extends Activity {
+import net.pubnative.library.demo.utils.Settings;
 
-    private static final String TAG = MainActivity.class.getName();
+public class SettingsActivity extends Activity {
 
-    @Override
+    private static final String TAG = SettingsActivity.class.getName();
+    private TextView appToken;
+
     protected void onCreate(Bundle savedInstanceState) {
 
         Log.v(TAG, "onCreate");
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_settings);
+        appToken = (TextView) findViewById(R.id.activity_settings_text_app_token);
+        appToken.setText(Settings.getAppToken());
     }
 
-    public void onNativeClick(View view) {
+    public void onDoneClick(View view) {
 
-        Log.v(TAG, "onNativeClick");
-        // Launch native activity
-        Intent intent = new Intent(this, NativeAdActivity.class);
-        startActivity(intent);
-    }
-
-    public void onSettingsClick(View view) {
-
-        Log.v(TAG, "onSettingsClick");
-        // Launch native activity
-        Intent intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
+        Log.v(TAG, "onDoneClick");
+        Settings.setAppToken(appToken.getText().toString());
+        finish();
     }
 }

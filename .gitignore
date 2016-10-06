@@ -1,3 +1,7 @@
+# Mac
+.DS_Store
+/captures
+
 # Built application files
 *.apk
 *.ap_
@@ -24,7 +28,6 @@ proguard/
 
 # Log Files
 *.log
-
 *.iml
 
 # Android Studio/IntelliJ

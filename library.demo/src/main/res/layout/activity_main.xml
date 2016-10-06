@@ -1,124 +1,49 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/content_view"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/white"
-    tools:context="net.pubnative.library.sample.MainActivity" >
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#1e1e1e">
 
-    <TextView
-        android:id="@+id/settings_text"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SETTINGS"
         android:layout_alignParentTop="true"
-        android:background="@android:color/darker_gray"
-        android:gravity="center"
-        android:text="Settings"
-        android:textAppearance="?android:attr/textAppearanceButton"
+        android:onClick="onSettingsClick"
+        android:background="#650067"
         android:textColor="@android:color/white"
-        android:textSize="20dp" />
-    
-    <ImageView
-        android:id="@+id/pubnative_image"
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@id/settings_text"
-        android:layout_marginBottom="5dp"
-        android:layout_marginTop="5dp"
-        android:src="@drawable/pubnative_logo" />
-
-    <View
-        android:id="@+id/separator_view"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@id/pubnative_image"
-        android:background="@android:color/darker_gray" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Interstitial"
-        android:id="@+id/btn_interstitial"
-        android:layout_below="@+id/separator_view"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"/>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Game List"
-        android:id="@+id/btn_game_list"
-        android:layout_below="@+id/btn_interstitial"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginTop="10dp"/>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Native"
-        android:id="@+id/btn_native"
-        android:layout_below="@+id/btn_game_list"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginTop="10dp"/>
+        android:id="@+id/activity_main_btn_settings"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        android:padding="20dp"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/btn_native"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true">
+        android:layout_below="@+id/activity_main_separator"
+        >
 
-        <ImageView
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:id="@+id/native_image"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_marginBottom="5dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/native_title"
-            android:layout_alignBottom="@+id/native_image"
-            android:layout_toRightOf="@+id/native_image"
-            android:layout_toEndOf="@+id/native_image"
-            android:layout_alignParentTop="true"
-            android:gravity="center_vertical|center_horizontal"
-            android:layout_alignParentRight="true" />
-
-        <RelativeLayout
+        <Button
             android:layout_width="match_parent"
-            android:layout_height="fill_parent"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:layout_below="@+id/native_image">
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/native_banner"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentRight="true" />
-        </RelativeLayout>
+            android:layout_height="wrap_content"
+            android:text="Native"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentRight="false"
+            android:onClick="onNativeClick"
+            android:id="@+id/button"
+            />
     </RelativeLayout>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="Formats"
+        android:id="@+id/activity_main_separator"
+        android:layout_below="@+id/activity_main_btn_settings"
+        android:gravity="center"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:background="#4b4b4b"/>
 </RelativeLayout>
