@@ -23,13 +23,23 @@
 
 package net.pubnative.library.request.model;
 
-public class PubnativeBeacon {
+import net.pubnative.library.request.model.api.PubnativeAPIV3AdModel;
 
-    public String type;
-    public String url;
+/**
+ * Data holder for a Pubnative tracking beacon
+ *
+ * @deprecated This data holder is outdated and can contain null url's, so shouldn't be used
+ */
+@Deprecated
+class PubnativeBeacon {
 
-    public interface BeaconType {
+    String type;
+    String url;
+    String js;
 
-        String IMPRESSION = "impression";
+    interface BeaconType {
+
+        String IMPRESSION = PubnativeAPIV3AdModel.Beacon.IMPRESSION;
+        String CLICK      = PubnativeAPIV3AdModel.Beacon.CLICK;
     }
 }

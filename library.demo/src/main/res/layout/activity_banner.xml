@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:id="@+id/activity_native_container_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true">
+
+        <Button
+            android:id="@+id/start_request"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:onClick="onRequestClick"
+            android:text="Request" />
+
+        <RadioGroup
+            android:id="@+id/banner_position"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/start_request"
+            android:checkedButton="@+id/rb_bottom">
+
+            <RadioButton
+                android:id="@+id/rb_top"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Banner on Top"/>
+
+            <RadioButton
+                android:id="@+id/rb_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Banner on Bottom"/>
+
+        </RadioGroup>
+
+        <RadioGroup
+            android:id="@+id/banner_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/start_request"
+            android:layout_toRightOf="@id/banner_position"
+            android:checkedButton="@+id/rb_height_50">
+
+            <RadioButton
+                android:id="@+id/rb_height_50"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Banner 50"/>
+
+            <RadioButton
+                android:id="@+id/rb_height_90"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Banner 90"/>
+
+        </RadioGroup>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/activity_native_container_loader"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#77000000"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/activity_native_loading"
+            android:layout_width="70dp"
+            android:layout_height="70dp" />
+    </RelativeLayout>
+
+</RelativeLayout>

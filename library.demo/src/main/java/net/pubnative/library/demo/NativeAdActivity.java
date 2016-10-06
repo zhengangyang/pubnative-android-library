@@ -27,6 +27,9 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -35,8 +38,8 @@ import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 
 import net.pubnative.library.demo.utils.Settings;
-import net.pubnative.library.request.model.PubnativeAdModel;
 import net.pubnative.library.request.PubnativeRequest;
+import net.pubnative.library.request.model.PubnativeAdModel;
 
 import java.util.List;
 
@@ -44,16 +47,20 @@ public class NativeAdActivity extends Activity implements PubnativeRequest.Liste
                                                           PubnativeAdModel.Listener {
 
     private static final String TAG = NativeAdActivity.class.getName();
-    private PubnativeRequest mRequest;
     // Container fields
-    private RelativeLayout   mLoaderContainer;
-    private RelativeLayout   mAdContainer;
+    private RelativeLayout mAdContainer;
+    // Settings
+    private CheckBox       mCustomLoaderEnabled;
+    // Loader
+    private View           mCustomLoaderView;
+    private View           mCustomLoaderSpiner;
     // Ad fields
-    private TextView         mTitle;
-    private TextView         mDescription;
-    private TextView         mCTA;
-    private ImageView        mIcon;
-    private ImageView        mBanner;
+    private TextView       mTitle;
+    private TextView       mDescription;
+    private TextView       mCTA;
+    private ImageView      mIcon;
+    private ImageView      mBanner;
+    private PubnativeAdModel mCurrentAd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,12 +69,15 @@ public class NativeAdActivity extends Activity implements PubnativeRequest.Liste
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_native);
         mAdContainer = (RelativeLayout) findViewById(R.id.activity_native_container_ad);
-        mLoaderContainer = (RelativeLayout) findViewById(R.id.activity_native_container_loader);
         mTitle = (TextView) findViewById(R.id.activity_native_text_title);
         mDescription = (TextView) findViewById(R.id.activity_native_text_description);
         mCTA = (TextView) findViewById(R.id.activity_native_text_cta);
         mIcon = (ImageView) findViewById(R.id.activity_native_image_icon);
         mBanner = (ImageView) findViewById(R.id.activity_native_image_banner);
+
+        mCustomLoaderEnabled = (CheckBox) findViewById(R.id.activity_native_custom_loader);
+        mCustomLoaderView = findViewById(R.id.activity_native_container_loader);
+        mCustomLoaderSpiner = findViewById(R.id.activity_native_container_loader_square);
     }
 
     @Override
@@ -75,16 +85,17 @@ public class NativeAdActivity extends Activity implements PubnativeRequest.Liste
 
         super.onResume();
         mAdContainer.setVisibility(View.GONE);
-        mLoaderContainer.setVisibility(View.GONE);
     }
 
     public void onRequestClick(View v) {
 
         Log.v(TAG, "onRequestClick");
-        mLoaderContainer.setVisibility(View.VISIBLE);
+
+        mCustomLoaderView.setVisibility(View.GONE);
+
         PubnativeRequest request = new PubnativeRequest();
         request.setParameter(PubnativeRequest.Parameters.APP_TOKEN, Settings.getAppToken());
-        request.start(this, PubnativeRequest.Endpoint.NATIVE, this);
+        request.start(this, this);
     }
     //==============================================================================================
     // Callbacks
@@ -97,26 +108,26 @@ public class NativeAdActivity extends Activity implements PubnativeRequest.Liste
 
         Log.v(TAG, "onPubnativeRequestSuccess");
         if (ads != null && ads.size() > 0) {
-            PubnativeAdModel ad = ads.get(0);
-            mTitle.setText(ad.getTitle());
-            mDescription.setText(ad.getDescription());
-            mCTA.setText(ad.getCtaText());
-            Picasso.with(this).load(ad.getIconUrl()).into(mIcon);
-            Picasso.with(this).load(ad.getBannerUrl()).into(mBanner);
-            ad.startTracking(mAdContainer, this);
+            mCurrentAd = ads.get(0);
+            mTitle.setText(mCurrentAd.getTitle());
+            mDescription.setText(mCurrentAd.getDescription());
+            mCTA.setText(mCurrentAd.getCtaText());
+            Picasso.with(this).load(mCurrentAd.getIconUrl()).into(mIcon);
+            Picasso.with(this).load(mCurrentAd.getBannerUrl()).into(mBanner);
+            Log.v(TAG, "CUSTOM SPINNER " + mCustomLoaderEnabled.isChecked());
+            mCurrentAd.startTracking(mAdContainer, this);
+            mAdContainer.setVisibility(View.VISIBLE);
         } else {
-            Toast.makeText(this, "ERROR: no - fill", Toast.LENGTH_SHORT);
+            mAdContainer.setVisibility(View.GONE);
+            Toast.makeText(this, "ERROR: no - fill", Toast.LENGTH_SHORT).show();
         }
-        mLoaderContainer.setVisibility(View.GONE);
-        mAdContainer.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onPubnativeRequestFailed(PubnativeRequest request, Exception ex) {
 
         Log.v(TAG, "onPubnativeRequestFailed: " + ex);
-        Toast.makeText(this, "ERROR: " + ex, Toast.LENGTH_SHORT);
-        mLoaderContainer.setVisibility(View.GONE);
+        Toast.makeText(this, "ERROR: " + ex, Toast.LENGTH_SHORT).show();
     }
 
     // PubnativeAdModel.Listener
@@ -131,13 +142,49 @@ public class NativeAdActivity extends Activity implements PubnativeRequest.Liste
     public void onPubnativeAdModelClick(PubnativeAdModel pubnativeAdModel, View view) {
 
         Log.v(TAG, "onPubnativeAdModelClick");
-        mLoaderContainer.setVisibility(View.VISIBLE);
+
+        if(mCustomLoaderEnabled.isChecked()){
+            mCurrentAd.setUseClickLoader(false);
+            mCustomLoaderView.setVisibility(View.VISIBLE);
+            rotateAnimation();
+        }
+    }
+
+    private void rotateAnimation() {
+
+        if(mCustomLoaderEnabled.isChecked() && mCustomLoaderView.getVisibility() == View.VISIBLE) {
+            Animation rotateAnimation = new RotateAnimation(0.0f,
+                                                            360.0f,
+                                                            Animation.RELATIVE_TO_SELF,
+                                                            0.5f,
+                                                            Animation.RELATIVE_TO_SELF,
+                                                            0.5f);
+            rotateAnimation.setDuration(1000);
+            rotateAnimation.setAnimationListener(new Animation.AnimationListener() {
+
+                @Override
+                public void onAnimationStart(Animation animation) {
+                    // Do nothing
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    rotateAnimation();
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+                    // Do nothing
+                }
+            });
+            mCustomLoaderSpiner.startAnimation(rotateAnimation);
+        }
     }
 
     @Override
     public void onPubnativeAdModelOpenOffer(PubnativeAdModel pubnativeAdModel) {
 
         Log.v(TAG, "onPubnativeAdModelOpenOffer");
-        mLoaderContainer.setVisibility(View.GONE);
+        mCustomLoaderView.setVisibility(View.GONE);
     }
 }

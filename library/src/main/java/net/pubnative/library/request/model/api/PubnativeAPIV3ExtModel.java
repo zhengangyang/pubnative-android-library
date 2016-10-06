@@ -21,19 +21,11 @@
 // SOFTWARE.
 //
 
-package net.pubnative.library.request.model;
+package net.pubnative.library.request.model.api;
 
-import java.util.List;
+import java.util.Map;
 
-public class PubnativeRequestAPIResponseModel {
+public class PubnativeAPIV3ExtModel {
 
-    public String                 status;
-    public String                 error_message;
-    public List<PubnativeAdModel> ads;
-
-    public interface Status {
-
-        String ERROR = "error";
-        String OK    = "ok";
-    }
+    protected Map meta;
 }

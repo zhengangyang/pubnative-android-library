@@ -28,74 +28,77 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.google.gson.Gson;
 
 import net.pubnative.AdvertisingIdClient;
 import net.pubnative.library.network.PubnativeHttpRequest;
+import net.pubnative.library.request.model.api.PubnativeAPIV3AdModel;
+import net.pubnative.library.request.model.api.PubnativeAPIV3ResponseModel;
 import net.pubnative.library.request.model.PubnativeAdModel;
-import net.pubnative.library.request.model.PubnativeRequestAPIResponseModel;
 import net.pubnative.library.utils.Crypto;
 import net.pubnative.library.utils.SystemUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class PubnativeRequest implements PubnativeHttpRequest.Listener, AdvertisingIdClient.Listener {
+public class PubnativeRequest implements PubnativeHttpRequest.Listener,
+                                         AdvertisingIdClient.Listener {
 
     private static         String               TAG                = PubnativeRequest.class.getSimpleName();
-    private static final   String               NATIVE_TYPE_URL    = "native";
-    protected static final String               BASE_URL           = "http://api.pubnative.net/api/partner/v2/promotions";
+    protected static final String               BASE_URL           = "http://api.pubnative.net/api/v3/native";
     protected              Context              mContext           = null;
-    protected              Endpoint             mEndpoint          = null;
     protected              Map<String, String>  mRequestParameters = new HashMap<String, String>();
     protected              Listener             mListener          = null;
     protected              PubnativeHttpRequest mRequest           = null;
     protected              boolean              mIsRunning         = false;
 
     /**
-     * These are the various types of adds pubnative support
+     * Enum with all possible endpoints for the request
+     *
+     * @deprecated Endpoint was deprecated, and no longer used
      */
+    @Deprecated
     public enum Endpoint {
         NATIVE,
     }
+
     //==============================================================================================
     // REQUEST PARAMETERS
     //==============================================================================================
 
     /**
-     * These are the various types of parameters
+     * Interface with all possible request parameters
      */
     public interface Parameters {
 
-        String APP_TOKEN                  = "app_token";
-        String BUNDLE_ID                  = "bundle_id";
-        String ANDROID_ADVERTISER_ID      = "android_advertiser_id";
-        String ANDROID_ADVERTISER_ID_SHA1 = "android_advertiser_id_sha1";
-        String ANDROID_ADVERTISER_ID_MD5  = "android_advertiser_id_md5";
-        String ICON_SIZE                  = "icon_size";
-        String BANNER_SIZE                = "banner_size";
+        String APP_TOKEN                  = "apptoken";
+        String ANDROID_ADVERTISER_ID      = "gid";
+        String ANDROID_ADVERTISER_ID_SHA1 = "gidsha1";
+        String ANDROID_ADVERTISER_ID_MD5  = "gidmd5";
         String OS                         = "os";
-        String DEVICE_MODEL               = "device_model";
-        String OS_VERSION                 = "os_version";
-        String NO_USER_ID                 = "no_user_id";
-        String PARTNER                    = "partner";
+        String OS_VERSION                 = "osver";
+        String DEVICE_MODEL               = "devicemodel";
+        String NO_USER_ID                 = "dnt";
         String LOCALE                     = "locale";
-        String PORTRAIT_BANNER_SIZE       = "portrait_banner_size";
-        String DEVICE_RESOLUTION          = "device_resolution";
-        String DEVICE_TYPE                = "device_type";
-        String AD_COUNT                   = "ad_count";
-        String ZONE_ID                    = "zone_id";
+        String AD_COUNT                   = "adcount";
+        String ZONE_ID                    = "zoneid";
         String LAT                        = "lat";
         String LONG                       = "long";
         String GENDER                     = "gender";
         String AGE                        = "age";
         String KEYWORDS                   = "keywords";
+        String APP_VERSION                = "appver";
+        String TEST                       = "test";
+        String VIDEO                      = "video";
+        String META_FIELDS                = "mf";
+        String ASSET_FIELDS               = "af";
     }
+
     //==============================================================================================
     // LISTENER
     //==============================================================================================
@@ -121,6 +124,7 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener, Advertis
          */
         void onPubnativeRequestFailed(PubnativeRequest request, Exception ex);
     }
+
     //==============================================================================================
     // Public
     //==============================================================================================
@@ -136,9 +140,7 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener, Advertis
         Log.v(TAG, "setParameter: " + key + " : " + value);
         if (TextUtils.isEmpty(key)) {
             Log.e(TAG, "Invalid key passed for parameter");
-            return;
-        }
-        if (TextUtils.isEmpty(value)) {
+        } else if (TextUtils.isEmpty(value)) {
             mRequestParameters.remove(key);
         } else {
             mRequestParameters.put(key, value);
@@ -146,13 +148,46 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener, Advertis
     }
 
     /**
-     * Starts pub native request, This function make the ad request to the pubnative server. It makes asynchronous network request in the background.
+     * Sets parameters required to make the pub native request
      *
-     * @param context valid Context object
+     * @param key   key name of parameter
+     * @param value actual value of parameter
+     */
+    public void setParameterArray(String key, String[] value) {
+
+        Log.v(TAG, "setParameter: " + key + " : " + value);
+        if (TextUtils.isEmpty(key)) {
+            Log.e(TAG, "Invalid key passed for parameter");
+        } else if (value == null) {
+            mRequestParameters.remove(key);
+        } else {
+            mRequestParameters.put(key, TextUtils.join(",", value));
+        }
+    }
+
+    /**
+     * Starts pubnative request, This function make the ad request to the pubnative server. It makes asynchronous network request in the background.
+     *
+     * @param context  valid Context object
      * @param endpoint endpoint of ad (ex: NATIVE)
      * @param listener valid nativeRequestListener to track ad request callbacks.
+     *
+     * @deprecated Start doesn't require an endpoint anymore, this parameter will be ignored
      */
+    @Deprecated
     public void start(Context context, Endpoint endpoint, Listener listener) {
+
+        Log.v(TAG, "start");
+        start(context, listener);
+    }
+
+    /**
+     * Starts pubnative request, This function make the ad request to the pubnative server. It makes asynchronous network request in the background.
+     *
+     * @param context  valid Context object
+     * @param listener valid nativeRequestListener to track ad request callbacks.
+     */
+    public void start(Context context, Listener listener) {
 
         Log.v(TAG, "start");
         if (listener == null) {
@@ -161,12 +196,11 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener, Advertis
             mListener = listener;
             if (context == null) {
                 invokeOnFail(new IllegalArgumentException("PubnativeRequest - Error: context is null"));
-            } else if(mIsRunning) {
+            } else if (mIsRunning) {
                 Log.w(TAG, "PubnativeRequest - this request is already running, dropping the call");
             } else {
                 mIsRunning = true;
                 mContext = context;
-                mEndpoint = endpoint;
                 setDefaultParameters();
                 if (!mRequestParameters.containsKey(Parameters.ANDROID_ADVERTISER_ID)) {
                     AdvertisingIdClient.getAdvertisingId(mContext, this);
@@ -177,15 +211,35 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener, Advertis
         }
     }
 
+    /**
+     * Sets test mode to the status passed in the parameter
+     *
+     * @param enabled true if you want to enable test mode false if you want to get production ads
+     */
+    public void setTestMode(boolean enabled) {
+
+        Log.v(TAG, "setTestMode");
+        setParameter(Parameters.TEST, enabled ? "1" : "0");
+    }
+
+    /**
+     * Sets the timeout for the request to the specified timeout
+     *
+     * @param timeout int value of timeout in milliseconds
+     */
+    public void setTimeout(int timeout) {
+
+        Log.v(TAG, "setTimeout");
+        PubnativeHttpRequest.setConnectionTimeout(timeout);
+    }
+
     //==============================================================================================
     // Private
     //==============================================================================================
+
     protected void setDefaultParameters() {
 
         Log.v(TAG, "setDefaultParameters");
-        if (!mRequestParameters.containsKey(Parameters.BUNDLE_ID)) {
-            mRequestParameters.put(Parameters.BUNDLE_ID, SystemUtils.getPackageName(mContext));
-        }
         if (!mRequestParameters.containsKey(Parameters.OS)) {
             mRequestParameters.put(Parameters.OS, "android");
         }
@@ -195,55 +249,45 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener, Advertis
         if (!mRequestParameters.containsKey(Parameters.OS_VERSION)) {
             mRequestParameters.put(Parameters.OS_VERSION, Build.VERSION.RELEASE);
         }
-        if (!mRequestParameters.containsKey(Parameters.DEVICE_RESOLUTION)) {
-            DisplayMetrics dm = mContext.getResources().getDisplayMetrics();
-            mRequestParameters.put(Parameters.DEVICE_RESOLUTION, dm.widthPixels + "x" + dm.heightPixels);
-        }
-        if (!mRequestParameters.containsKey(Parameters.DEVICE_TYPE)) {
-            mRequestParameters.put(Parameters.DEVICE_TYPE, SystemUtils.isTablet(mContext) ? "tablet" : "phone");
-        }
         if (!mRequestParameters.containsKey(Parameters.LOCALE)) {
             mRequestParameters.put(Parameters.LOCALE, Locale.getDefault().getLanguage());
         }
         // If none of lat and long is sent by the client then only we add default values. We can't alter client's parameters.
-        if (SystemUtils.isLocationPermissionGranted(mContext)) {
+        if (!mRequestParameters.containsKey(Parameters.LAT) &&
+            !mRequestParameters.containsKey(Parameters.LONG)) {
             Location location = SystemUtils.getLastLocation(mContext);
-            if (location != null &&
-                !mRequestParameters.containsKey(Parameters.LAT) &&
-                !mRequestParameters.containsKey(Parameters.LONG)) {
+            if (location != null) {
                 mRequestParameters.put(Parameters.LAT, String.valueOf(location.getLatitude()));
                 mRequestParameters.put(Parameters.LONG, String.valueOf(location.getLongitude()));
             }
+        }
+        // If no asset has been set explicitly, add them here to get asset fields in response
+        if(!mRequestParameters.containsKey(Parameters.ASSET_FIELDS)) {
+            String[] assets = new String[] {
+                    PubnativeAsset.TITLE,
+                    PubnativeAsset.DESCRIPTION,
+                    PubnativeAsset.ICON,
+                    PubnativeAsset.BANNER,
+                    PubnativeAsset.CALL_TO_ACTION,
+                    PubnativeAsset.RATING
+            };
+            setParameterArray(PubnativeRequest.Parameters.ASSET_FIELDS, assets);
         }
     }
 
     protected String getRequestURL() {
 
         Log.v(TAG, "getRequestURL");
-        String url = null;
-        if (mEndpoint != null) {
-            switch (mEndpoint) {
-                case NATIVE:
-                    // Creating base URI
-                    Uri.Builder uriBuilder = Uri.parse(BASE_URL).buildUpon();
-                    uriBuilder.appendPath(NATIVE_TYPE_URL);
-                    // Appending parameters
-                    for (String key : mRequestParameters.keySet()) {
-                        String value = mRequestParameters.get(key);
-                        if (key != null && value != null) {
-                            uriBuilder.appendQueryParameter(key, value);
-                        }
-                    }
-                    // Final URL
-                    url = uriBuilder.build().toString();
-                    break;
-                default:
-                    // Error: Invalid ENDPOINT
-                    Log.e(TAG, "getRequestURL - type not recognized");
-                    break;
+        // Base URL
+        Uri.Builder uriBuilder = Uri.parse(BASE_URL).buildUpon();
+        // Appending parameters
+        for (String key : mRequestParameters.keySet()) {
+            String value = mRequestParameters.get(key);
+            if (key != null && value != null) {
+                uriBuilder.appendQueryParameter(key, value);
             }
         }
-        return url;
+        return uriBuilder.build().toString();
     }
 
     /**
@@ -265,6 +309,7 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener, Advertis
     //==============================================================================================
     // Listener Helpers
     //==============================================================================================
+
     protected void invokeOnSuccess(List<PubnativeAdModel> ads) {
 
         Log.v(TAG, "invokeOnSuccess");
@@ -288,6 +333,7 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener, Advertis
     //==============================================================================================
     // PubnativeHttpRequest.Listener
     //----------------------------------------------------------------------------------------------
+
     @Override
     public void onPubnativeHttpRequestStart(PubnativeHttpRequest request) {
 
@@ -299,11 +345,20 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener, Advertis
 
         Log.v(TAG, "onPubnativeHttpRequestFinish");
         try {
-            PubnativeRequestAPIResponseModel apiResponseModel = new Gson().fromJson(result, PubnativeRequestAPIResponseModel.class);
+            PubnativeAPIV3ResponseModel apiResponseModel = new Gson().fromJson(result, PubnativeAPIV3ResponseModel.class);
             if (apiResponseModel == null) {
                 invokeOnFail(new Exception("PubnativeRequest - Error: Response JSON error"));
-            } else if (PubnativeRequestAPIResponseModel.Status.OK.equals(apiResponseModel.status)) {
-                invokeOnSuccess(apiResponseModel.ads);
+            } else if (PubnativeAPIV3ResponseModel.Status.OK.equals(apiResponseModel.status)) {
+                List<PubnativeAdModel> resultModels = null;
+                if (apiResponseModel.ads != null) {
+                    for (PubnativeAPIV3AdModel adModel : apiResponseModel.ads) {
+                        if (resultModels == null) {
+                            resultModels = new ArrayList<PubnativeAdModel>();
+                        }
+                        resultModels.add(PubnativeAdModel.create(adModel));
+                    }
+                }
+                invokeOnSuccess(resultModels);
             } else {
                 invokeOnFail(new Exception("PubnativeRequest - Error: Server error: " + apiResponseModel.error_message));
             }
@@ -319,10 +374,13 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener, Advertis
         invokeOnFail(exception);
     }
 
+    //----------------------------------------------------------------------------------------------
     // AdvertisingIdClient.Listener
     //----------------------------------------------------------------------------------------------
+
     @Override
     public void onAdvertisingIdClientFinish(AdvertisingIdClient.AdInfo adInfo) {
+
         Log.v(TAG, "onAdvertisingIdClientFinish");
         if (adInfo != null && !adInfo.isLimitAdTrackingEnabled()) {
             String advertisingId = adInfo.getId();
@@ -337,6 +395,7 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener, Advertis
 
     @Override
     public void onAdvertisingIdClientFail(Exception exception) {
+
         Log.v(TAG, "onAdvertisingIdClientFail");
         mRequestParameters.put(Parameters.NO_USER_ID, "1");
         sendNetworkRequest();

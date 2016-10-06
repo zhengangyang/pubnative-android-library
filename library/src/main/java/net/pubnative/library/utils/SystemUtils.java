@@ -34,12 +34,16 @@ import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebView;
 
 public class SystemUtils {
 
-    private static final String TAG = SystemUtils.class.getSimpleName();
+    private static final String TAG               = SystemUtils.class.getSimpleName();
+    private static       String sWebViewUserAgent = null;
 
     /**
+     * Returns the package name of the app
+     *
      * @param context Context object
      *
      * @return package name
@@ -51,11 +55,6 @@ public class SystemUtils {
         return (pInfo != null) ? pInfo.packageName : "";
     }
 
-    /**
-     * @param context Context object
-     *
-     * @return package info
-     */
     private static PackageInfo getPackageInfo(Context context) {
 
         Log.v(TAG, "getPackageInfo");
@@ -68,6 +67,28 @@ public class SystemUtils {
     }
 
     /**
+     * Returns the default user agent
+     *
+     * @param context valid Context
+     *
+     * @return the user agentof the web view
+     */
+    public static String getWebViewUserAgent(Context context) {
+
+        Log.v(TAG, "getWebViewUserAgent");
+        if (sWebViewUserAgent == null) {
+            try {
+                sWebViewUserAgent = new WebView(context).getSettings().getUserAgentString();
+            } catch (Exception e) {
+                Log.w(TAG, "getWebViewUserAgent - Error: cannot inject user agent");
+            }
+        }
+        return sWebViewUserAgent;
+    }
+
+    /**
+     * Indicates if there are ACCESS_COARSE_LOCATION permissions granted
+     *
      * @param context Context object
      *
      * @return true if location permission granted else false
@@ -107,12 +128,14 @@ public class SystemUtils {
     public static Location getLastLocation(Context context) {
 
         Log.v(TAG, "getLastLocation");
-        LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         Location loc = null;
-        for (String prov : lm.getProviders(true)) {
-            loc = lm.getLastKnownLocation(prov);
-            if (loc != null) {
-                break;
+        if (SystemUtils.isLocationPermissionGranted(context)) {
+            LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+            for (String prov : lm.getProviders(true)) {
+                loc = lm.getLastKnownLocation(prov);
+                if (loc != null) {
+                    break;
+                }
             }
         }
         return loc;

@@ -144,21 +144,10 @@ public class PubnativeRequestTest {
         PubnativeRequest.Listener listener = spy(PubnativeRequest.Listener.class);
         PubnativeRequest request = spy(PubnativeRequest.class);
         request.mListener = listener;
-        request.mEndpoint = PubnativeRequest.Endpoint.NATIVE;
         request.setParameter(PubnativeRequest.Parameters.ANDROID_ADVERTISER_ID, "test");
-        request.start(this.applicationContext, PubnativeRequest.Endpoint.NATIVE, listener);
+        request.start(this.applicationContext, listener);
         verify(request, times(1)).setDefaultParameters();
         verify(request, times(1)).sendNetworkRequest();
-    }
-
-    @Test
-    public void testStartWithNullEndpointFails() {
-
-        PubnativeRequest.Listener listener = spy(PubnativeRequest.Listener.class);
-        PubnativeRequest request = spy(PubnativeRequest.class);
-        request.setParameter(PubnativeRequest.Parameters.ANDROID_ADVERTISER_ID, "test");
-        request.start(this.applicationContext, null, listener);
-        verify(request, times(1)).invokeOnFail(any(Exception.class));
     }
 
     @Test
@@ -167,7 +156,7 @@ public class PubnativeRequestTest {
         PubnativeRequest.Listener listener = mock(PubnativeRequest.Listener.class);
         PubnativeRequest pubnativeRequest = spy(PubnativeRequest.class);
         pubnativeRequest.setParameter(PubnativeRequest.Parameters.ANDROID_ADVERTISER_ID, "test");
-        pubnativeRequest.start(null, PubnativeRequest.Endpoint.NATIVE, listener);
+        pubnativeRequest.start(null, listener);
         verify(pubnativeRequest, times(1)).invokeOnFail(any(Exception.class));
     }
 
@@ -177,12 +166,9 @@ public class PubnativeRequestTest {
         PubnativeRequest request = spy(PubnativeRequest.class);
         request.mContext = this.applicationContext;
         request.setDefaultParameters();
-        assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.BUNDLE_ID)).isTrue();
         assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.OS)).isTrue();
         assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.OS_VERSION)).isTrue();
         assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.DEVICE_MODEL)).isTrue();
-        assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.DEVICE_RESOLUTION)).isTrue();
-        assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.DEVICE_TYPE)).isTrue();
         assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.LOCALE)).isTrue();
     }
 
@@ -192,22 +178,12 @@ public class PubnativeRequestTest {
         String testKey = "testKey";
         String testValue = "testValue";
         PubnativeRequest request = spy(PubnativeRequest.class);
-        request.mEndpoint = PubnativeRequest.Endpoint.NATIVE;
         request.setParameter(testKey, testValue);
         String url = request.getRequestURL();
         assertThat(url).isNotNull();
         assertThat(url).isNotEmpty();
         assertThat(url).startsWith(PubnativeRequest.BASE_URL);
         assertThat(url).contains(testKey);
-    }
-
-    @Test
-    public void testInvalidEndpointReturnsNullURL() {
-
-        PubnativeRequest pubnativeRequest = spy(PubnativeRequest.class);
-        pubnativeRequest.mEndpoint = null;
-        String url = pubnativeRequest.getRequestURL();
-        assertThat(url).isNull();
     }
 
     @Test

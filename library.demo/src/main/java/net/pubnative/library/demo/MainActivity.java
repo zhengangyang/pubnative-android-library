@@ -56,4 +56,28 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
+
+    public void onInterstitialClick(View view) {
+
+        Log.v(TAG, "onInterstitialClick");
+        // Launch interstitial activity
+        Intent intent = new Intent(this, InterstitialAdActivity.class);
+        startActivity(intent);
+    }
+
+    public void onBannerClick(View view) {
+
+        Log.v(TAG, "onBannerClick");
+        // Launch interstitial activity
+        Intent intent = new Intent(this, BannerActivity.class);
+        startActivity(intent);
+    }
+
+    public void onInFeedBannerClick(View view) {
+
+        Log.v(TAG, "onInFeedBannerClick");
+        // Launch InFeedBanner activity
+        Intent intent = new Intent(this, InFeedBannerActivity.class);
+        startActivity(intent);
+    }
 }

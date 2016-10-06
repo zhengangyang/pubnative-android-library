@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">library.demo</string>
+
+    <string name="text_formats">Formats</string>
+
+    <string name="action_settings">SETTINGS</string>
+    <string name="action_native">Native</string>
+    <string name="action_interstitial">Interstitial</string>
+    <string name="action_banner">Banner</string>
+    <string name="action_feed_banner">InFeed Banner</string>
 </resources>

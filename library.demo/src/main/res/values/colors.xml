@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="demo_activity_background">#1e1e1e</color>
+    <color name="demo_activity_pubnative_purple">#650067</color>
+    <color name="demo_activity_separator_background">#4b4b4b</color>
+</resources>

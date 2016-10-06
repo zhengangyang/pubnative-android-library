@@ -39,12 +39,13 @@ import java.util.List;
 
 public class PubnativeTrackingManager {
 
-    private    static final String               TAG                 = PubnativeTrackingManager.class.getSimpleName();
-    private    static final String               SHARED_PREFERENCES  = "net.pubnative.library.tracking.PubnativeTrackingManager";
-    protected  static final String               SHARED_PENDING_LIST = "pending";
-    protected  static final String               SHARED_FAILED_LIST  = "failed";
-    private    static final long                 ITEM_VALIDITY_TIME  = 1800000; // 30 minutes
-    private    static       boolean              sIsTracking         = false;
+    private static final   String  TAG                 = PubnativeTrackingManager.class.getSimpleName();
+    private static final   String  SHARED_PREFERENCES  = "net.pubnative.library.tracking.PubnativeTrackingManager";
+    protected static final String  SHARED_PENDING_LIST = "pending";
+    protected static final String  SHARED_FAILED_LIST  = "failed";
+    private static final   long    ITEM_VALIDITY_TIME  = 1800000; // 30 minutes
+    private static         boolean sIsTracking         = false;
+
     //==============================================================================================
     // PUBLIC
     //==============================================================================================
@@ -78,6 +79,7 @@ public class PubnativeTrackingManager {
     //==============================================================================================
     // PRIVATE
     //==============================================================================================
+
     protected synchronized static void trackNextItem(final Context context) {
 
         Log.v(TAG, "trackNextItem");
@@ -130,6 +132,7 @@ public class PubnativeTrackingManager {
     //==============================================================================================
     // QUEUE
     //==============================================================================================
+
     protected static void enqueueFailedList(Context context) {
 
         Log.v(TAG, "enqueueFailedList");
@@ -167,6 +170,7 @@ public class PubnativeTrackingManager {
     //==============================================================================================
     // List helper
     //----------------------------------------------------------------------------------------------
+
     protected static List<PubnativeTrackingURLModel> getList(Context context, String key) {
 
         Log.v(TAG, "getList: " + key);
@@ -195,8 +199,10 @@ public class PubnativeTrackingManager {
         preferencesEditor.apply();
     }
 
+    //----------------------------------------------------------------------------------------------
     // Base shared preferences
     //----------------------------------------------------------------------------------------------
+
     protected static SharedPreferences getSharedPreferences(Context context) {
 
         Log.v(TAG, "getSharedPreferences");

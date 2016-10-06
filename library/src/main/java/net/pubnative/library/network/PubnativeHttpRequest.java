@@ -31,6 +31,8 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 
+import net.pubnative.library.utils.SystemUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,12 +40,14 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-/**
- * Created by davidmartin on 06/03/16.
- */
 public class PubnativeHttpRequest {
 
-    private static final String TAG = PubnativeHttpRequest.class.getSimpleName();
+    private static final String   TAG                = PubnativeHttpRequest.class.getSimpleName();
+    // Request properties
+    protected static     int      sConnectionTimeout = 4000; // 4 seconds
+    // Inner
+    protected            Listener mListener          = null;
+    protected            Handler  mHandler           = null;
 
     //==============================================================================================
     // Listener
@@ -75,38 +79,18 @@ public class PubnativeHttpRequest {
     }
 
     //==============================================================================================
-    // Properties
-    //==============================================================================================
-    // Request properties
-    protected int      mConnectionTimeout = 3000; // 3 seconds
-    protected int      mReadTimeout       = 1000; // 1 second
-    // Inner
-    protected Listener mListener          = null;
-    protected Handler  mHandler           = null;
-
-    //==============================================================================================
     // Public
     //==============================================================================================
+
     /**
-     * Sets a timeout for stabilshing connection with the server, if not specified default is 3000 ms
+     * Sets a timeout for establishing connection with the server, if not specified default is 4000 ms
      *
      * @param connectionTimeout time in milliseconds
      */
-    public void setConnectionTimeout(int connectionTimeout) {
+    public static void setConnectionTimeout(int connectionTimeout) {
 
         Log.v(TAG, "setConnectionTimeout");
-        mConnectionTimeout = connectionTimeout;
-    }
-
-    /**
-     * Sets a timeout for reading the server response from the request, if not specified, default is 1000 ms
-     *
-     * @param readTimeout time in milliseconds
-     */
-    public void setReadTimeout(int readTimeout) {
-
-        Log.v(TAG, "setReadTimeout");
-        mReadTimeout = readTimeout;
+        sConnectionTimeout = connectionTimeout;
     }
 
     /**
@@ -114,9 +98,9 @@ public class PubnativeHttpRequest {
      *
      * @param context   valid Context object
      * @param urlString URL where the request will be done
-     * @param listener valid Listener for callbacks
+     * @param listener  valid Listener for callbacks
      */
-    public void start(Context context, final String urlString, Listener listener) {
+    public void start(final Context context, final String urlString, Listener listener) {
 
         Log.v(TAG, "start: " + urlString);
         mListener = listener;
@@ -124,7 +108,6 @@ public class PubnativeHttpRequest {
         if (mListener == null) {
             Log.w(TAG, "Warning: null listener specified");
         }
-
         if (TextUtils.isEmpty(urlString)) {
             invokeFail(new IllegalArgumentException("PubnativeHttpRequest - Error: null or empty url, dropping call"));
         } else {
@@ -132,16 +115,20 @@ public class PubnativeHttpRequest {
             NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
             boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
             if (isConnected) {
-
-                new Thread(new Runnable() {
+                mHandler.post(new Runnable() {
 
                     @Override
                     public void run() {
 
                         invokeStart();
-                        doRequest(urlString);
+                        String userAgent = SystemUtils.getWebViewUserAgent(context);
+                        if (TextUtils.isEmpty(userAgent)) {
+                            invokeFail(new Exception("PubnativeHttpRequest - Error: User agent cannot be retrieved"));
+                        } else {
+                            initiateRequest(urlString, userAgent);
+                        }
                     }
-                }).start();
+                });
             } else {
                 invokeFail(new Exception("PubnativeHttpRequest - Error: internet connection not detected, dropping call"));
             }
@@ -151,17 +138,31 @@ public class PubnativeHttpRequest {
     //==============================================================================================
     // Private
     //==============================================================================================
-    protected void doRequest(String urlString) {
+
+    private void initiateRequest(final String urlString, final String userAgent) {
+
+        Log.v(TAG, "initiateRequest");
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                doRequest(urlString, userAgent);
+            }
+        }).start();
+    }
+
+    protected void doRequest(String urlString, String userAgent) {
 
         Log.v(TAG, "doRequest: " + urlString);
         try {
             // 1. Create connection
             URL url = new URL(urlString);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestProperty("User-Agent", userAgent);
             // 2. Set connection properties
             connection.setRequestMethod("GET");
-            connection.setConnectTimeout(mConnectionTimeout);
-            connection.setReadTimeout(mReadTimeout);
+            connection.setConnectTimeout(sConnectionTimeout);
             connection.setDoInput(true);
             // 3. Do request
             connection.connect();

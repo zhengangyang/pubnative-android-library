@@ -1,0 +1,33 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1e1e1e">
+
+    <RelativeLayout
+        android:id="@+id/activity_native_container_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/activity_native_btn_request"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:onClick="onRequestClick"
+            android:text="Request" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/activity_native_container_loader"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#77000000"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/activity_native_loading"
+            android:layout_width="70dp"
+            android:layout_height="70dp" />
+    </RelativeLayout>
+</RelativeLayout>
