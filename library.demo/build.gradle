@@ -8,8 +8,8 @@ android {
         applicationId "net.pubnative.library.demo"
         minSdkVersion 10
         targetSdkVersion 10
-        versionCode 20
-        versionName "2.0.2"
+        versionCode 21
+        versionName "2.0.3"
     }
     buildTypes {
         release {
