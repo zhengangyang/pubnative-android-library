@@ -12,17 +12,16 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class AsyncHttpTask extends AsyncTask<String, Void, String>
-{
+public class AsyncHttpTask extends AsyncTask<String, Void, String> {
     private Context context;
-    private String  httpUrl;
-    private String  result;
+    private String httpUrl;
+    private String result;
     private boolean isErrror;
 
-    public interface AsyncHttpTaskListener
-    {
+    public interface AsyncHttpTaskListener {
         /**
          * Invoked when http task is finished
+         *
          * @param task   AsyncTask object used
          * @param result Response from server
          */
@@ -30,6 +29,7 @@ public class AsyncHttpTask extends AsyncTask<String, Void, String>
 
         /**
          * Invoked when http task fails
+         *
          * @param task AyncTask object used
          * @param e    Exception that caused failure
          */
@@ -40,45 +40,37 @@ public class AsyncHttpTask extends AsyncTask<String, Void, String>
 
     /**
      * Attach a listener to track async http task's behaviour
+     *
      * @param listener Listener object to be attached
      */
-    public void setListener(AsyncHttpTaskListener listener)
-    {
+    public void setListener(AsyncHttpTaskListener listener) {
         this.listener = listener;
     }
 
-    public Context getContext()
-    {
+    public Context getContext() {
         return this.context;
     }
 
-    public String getHttpUrl()
-    {
+    public String getHttpUrl() {
         return this.httpUrl;
     }
 
-    public AsyncHttpTask(Context context)
-    {
+    public AsyncHttpTask(Context context) {
         this.context = context;
         this.isErrror = false;
     }
 
     @Override
-    protected String doInBackground(String... params)
-    {
+    protected String doInBackground(String... params) {
         String result = null;
-        if (params.length > 0)
-        {
+        if (params.length > 0) {
             this.httpUrl = params[0];
-            if (this.httpUrl != null)
-            {
+            if (this.httpUrl != null) {
                 ConnectivityManager cm = (ConnectivityManager) this.context.getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
                 boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-                if (isConnected)
-                {
-                    try
-                    {
+                if (isConnected) {
+                    try {
                         HttpURLConnection connection;
                         connection = (HttpURLConnection) new URL(this.httpUrl).openConnection();
                         connection.setConnectTimeout(3000);
@@ -86,36 +78,25 @@ public class AsyncHttpTask extends AsyncTask<String, Void, String>
                         connection.setInstanceFollowRedirects(true);
                         connection.connect();
                         int responseCode = connection.getResponseCode();
-                        if (HttpURLConnection.HTTP_OK == responseCode || HttpURLConnection.HTTP_MOVED_TEMP == responseCode)
-                        {
+                        if (HttpURLConnection.HTTP_OK == responseCode || HttpURLConnection.HTTP_MOVED_TEMP == responseCode) {
                             result = this.getStringFromInputStream(connection.getInputStream());
-                        }
-                        else
-                        {
+                        } else {
                             result = "Pubnative - connection error";
                             this.isErrror = true;
                         }
-                    }
-                    catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         result = e.toString();
                         this.isErrror = true;
                     }
-                }
-                else
-                {
+                } else {
                     result = "Pubnative - Server not reachable";
                     this.isErrror = true;
                 }
-            }
-            else
-            {
+            } else {
                 result = "Pubnative - URL not valid: " + this.httpUrl;
                 this.isErrror = true;
             }
-        }
-        else
-        {
+        } else {
             result = "Pubnative - URL not specified";
             this.isErrror = true;
         }
@@ -123,48 +104,32 @@ public class AsyncHttpTask extends AsyncTask<String, Void, String>
     }
 
     @Override
-    protected void onPostExecute(String result)
-    {
-        if(this.listener != null)
-        {
-            if (isErrror)
-            {
+    protected void onPostExecute(String result) {
+        if (this.listener != null) {
+            if (isErrror) {
                 this.listener.onAsyncHttpTaskFailed(this, new Exception(result));
-            }
-            else
-            {
+            } else {
                 this.listener.onAsyncHttpTaskFinished(this, result);
             }
         }
     }
 
-    private String getStringFromInputStream(InputStream is)
-    {
+    private String getStringFromInputStream(InputStream is) {
         BufferedReader br = null;
         StringBuilder sb = new StringBuilder();
         String line;
-        try
-        {
+        try {
             br = new BufferedReader(new InputStreamReader(is));
-            while ((line = br.readLine()) != null)
-            {
+            while ((line = br.readLine()) != null) {
                 sb.append(line);
             }
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
-        }
-        finally
-        {
-            if (br != null)
-            {
-                try
-                {
+        } finally {
+            if (br != null) {
+                try {
                     br.close();
-                }
-                catch (IOException e)
-                {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }

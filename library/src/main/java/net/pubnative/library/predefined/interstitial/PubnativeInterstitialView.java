@@ -20,13 +20,11 @@ import java.util.ArrayList;
 
 public class PubnativeInterstitialView extends PubnativeView implements
         AdRendererListener,
-        OnClickListener
-{
-    private View     ctaView;
+        OnClickListener {
+    private View ctaView;
     private TextView descriptionView;
 
-    public PubnativeInterstitialView(PubnativeActivity activity, ArrayList<NativeAdModel> ads)
-    {
+    public PubnativeInterstitialView(PubnativeActivity activity, ArrayList<NativeAdModel> ads) {
         super(activity, ads);
         this.getActivity().getLayoutInflater().inflate(R.layout.pubnative_interstitial, this, true);
         this.descriptionView = (TextView) this.findViewById(R.id.pn_interstitial_description);
@@ -36,8 +34,7 @@ public class PubnativeInterstitialView extends PubnativeView implements
         this.renderAd();
     }
 
-    private void renderAd()
-    {
+    private void renderAd() {
         NativeAdRenderer renderer = new NativeAdRenderer(this.getContext());
         renderer.titleView = (TextView) this.findViewById(R.id.pn_interstitial_title);
         renderer.descriptionView = (TextView) this.findViewById(R.id.pn_interstitial_description);
@@ -50,27 +47,23 @@ public class PubnativeInterstitialView extends PubnativeView implements
 
     // ADRendererListener<NativeAdModel>
     @Override
-    public void onAdRenderStarted(AdRenderer renderer)
-    {
+    public void onAdRenderStarted(AdRenderer renderer) {
         // Do nothing
         Log.v("PubnativeInterstitialActivity", "onAdRenderStarted");
     }
 
     @Override
-    public void onAdRenderFailed(AdRenderer renderer, Exception e)
-    {
+    public void onAdRenderFailed(AdRenderer renderer, Exception e) {
         Log.v("PubnativeInterstitialActivity", "onAdRenderFailed: " + e);
         this.invokeMessage(PubnativeActivity.EVENT_LISTENER_FAILED, e);
     }
 
     @Override
-    public void onAdRenderFinished(AdRenderer renderer)
-    {
+    public void onAdRenderFinished(AdRenderer renderer) {
         Log.v("PubnativeInterstitialActivity", "onAdRenderFinished");
         this.ads.get(0).confirmImpressionAutomatically(this.getContext(), this, new NativeAdModel.Listener() {
             @Override
-            public void onAdImpression(NativeAdModel model)
-            {
+            public void onAdImpression(NativeAdModel model) {
                 Log.v("PubnativeInterstitialActivity", "onAdImpression");
             }
         });
@@ -78,20 +71,16 @@ public class PubnativeInterstitialView extends PubnativeView implements
 
     // OnClickListener
     @Override
-    public void onClick(View v)
-    {
-        if (this.ctaView == v)
-        {
+    public void onClick(View v) {
+        if (this.ctaView == v) {
             this.ads.get(0).open(this.getContext());
         }
     }
 
     @Override
-    protected void onOrientationChanged(Configuration configuration)
-    {
+    protected void onOrientationChanged(Configuration configuration) {
         this.descriptionView.setVisibility(View.GONE);
-        if (Configuration.ORIENTATION_PORTRAIT == configuration.orientation && this.descriptionView.getText().length() > 0)
-        {
+        if (Configuration.ORIENTATION_PORTRAIT == configuration.orientation && this.descriptionView.getText().length() > 0) {
             this.descriptionView.setVisibility(View.VISIBLE);
         }
     }

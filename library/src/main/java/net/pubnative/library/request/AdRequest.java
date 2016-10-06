@@ -30,6 +30,7 @@ import android.util.DisplayMetrics;
 
 import net.pubnative.library.PubnativeContract;
 import net.pubnative.library.model.NativeAdModel;
+import net.pubnative.library.model.VideoAdModel;
 import net.pubnative.library.task.AsyncHttpTask;
 import net.pubnative.library.util.Crypto;
 import net.pubnative.library.util.IdUtil;
@@ -43,69 +44,60 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
-public class AdRequest implements Serializable, AsyncHttpTask.AsyncHttpTaskListener, IdUtil.AndroidAdvertisingIDTask.AndroidAdvertisingIDTaskListener
-{
-    String BASE_URL            = "http://api.pubnative.net/api/partner/v2/promotions";
+public class AdRequest implements Serializable, AsyncHttpTask.AsyncHttpTaskListener, IdUtil.AndroidAdvertisingIDTask.AndroidAdvertisingIDTaskListener {
+    String BASE_URL = "http://api.pubnative.net/api/partner/v2/promotions";
     String NATIVE_ENDPOINT_URL = "native";
-    String VIDEO_ENDPOINT_URL  = "video";
+    String VIDEO_ENDPOINT_URL = "video";
 
-    public enum Endpoint
-    {
+    public enum Endpoint {
         NATIVE, VIDEO
     }
 
-    private static final long                    serialVersionUID  = 1L;
-    private final        HashMap<String, String> requestParameters = new HashMap<String, String>();
-    private              AdRequestListener       listener          = null;
-    private              Endpoint                endpoint          = null;
-    private              Context                 context           = null;
+    private static final long serialVersionUID = 1L;
+    private final HashMap<String, String> requestParameters = new HashMap<String, String>();
+    private AdRequestListener listener = null;
+    private Endpoint endpoint = null;
+    private Context context = null;
 
     /**
      * Creates a new ad request object
+     *
      * @param context valid Context object
      */
-    public AdRequest(Context context)
-    {
+    public AdRequest(Context context) {
         this.context = context;
     }
 
     /**
      * Sets parameters required to make the ad request
+     *
      * @param key key name of parameter
      * @param val actual value of parameter
      */
-    public void setParameter(String key, String val)
-    {
-        if (val == null)
-        {
+    public void setParameter(String key, String val) {
+        if (val == null) {
             requestParameters.remove(key);
-        }
-        else
-        {
+        } else {
             requestParameters.put(key, val);
         }
     }
 
-    public Endpoint getEndpoint()
-    {
+    public Endpoint getEndpoint() {
         return this.endpoint;
     }
 
     /**
      * Starts ad request
+     *
      * @param endpoint type of ad (ex: NATIVE)
      * @param listener valid listener to track ad request callbacks.
      */
-    public void start(final Endpoint endpoint, AdRequestListener listener)
-    {
+    public void start(final Endpoint endpoint, AdRequestListener listener) {
         this.listener = listener;
         this.endpoint = endpoint;
-        if (this.listener == null)
-        {
+        if (this.listener == null) {
             this.invokeOnAdRequestFailed(new Exception("Listener not specified, interrupting request"));
-        }
-        else
-        {
+        } else {
             this.invokeOnAdRequestStarted();
             // UI THREAD
             this.fillInDefaults();
@@ -119,16 +111,12 @@ public class AdRequest implements Serializable, AsyncHttpTask.AsyncHttpTaskListe
     }
 
     @Override
-    public void onAndroidAdvertisingIDTaskFinished(String result)
-    {
-        if (!TextUtils.isEmpty(result))
-        {
+    public void onAndroidAdvertisingIDTaskFinished(String result) {
+        if (!TextUtils.isEmpty(result)) {
             this.requestParameters.put(PubnativeContract.Request.ANDROID_ADVERTISER_ID, result);
             this.requestParameters.put(PubnativeContract.Request.ANDROID_ADVERTISER_ID_SHA1, Crypto.sha1(result));
             this.requestParameters.put(PubnativeContract.Request.ANDROID_ADVERTISER_ID_MD5, Crypto.md5(result));
-        }
-        else
-        {
+        } else {
             this.requestParameters.put(PubnativeContract.Request.NO_USER_ID, "1");
         }
 
@@ -138,86 +126,70 @@ public class AdRequest implements Serializable, AsyncHttpTask.AsyncHttpTaskListe
     }
 
     @Override
-    public void onAsyncHttpTaskFinished(AsyncHttpTask task, String result)
-    {
-        if(!TextUtils.isEmpty(result))
-        {
-            try
-            {
+    public void onAsyncHttpTaskFinished(AsyncHttpTask task, String result) {
+        if (!TextUtils.isEmpty(result)) {
+            try {
                 JSONObject jsonObject = new JSONObject(result);
                 JSONArray arr = jsonObject.getJSONArray(PubnativeContract.Response.ADS);
-                JSONSerializer jsonSerializer = new JSONSerializer(NativeAdModel.class, this.context);
+
+                Class requestedAdClass = NativeAdModel.class;
+                if (Endpoint.VIDEO == endpoint) {
+                    requestedAdClass = VideoAdModel.class;
+                }
+                JSONSerializer jsonSerializer = new JSONSerializer(requestedAdClass, this.context);
                 ArrayList<NativeAdModel> ads = (ArrayList<NativeAdModel>) jsonSerializer.deserializeAll(arr);
                 this.invokeOnAdRequestFinished(ads);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 this.invokeOnAdRequestFailed(e);
             }
-        }
-        else
-        {
+        } else {
             this.invokeOnAdRequestFailed(new Exception("Pubnative - Error: empty response"));
         }
     }
 
     @Override
-    public void onAsyncHttpTaskFailed(AsyncHttpTask task, Exception e)
-    {
+    public void onAsyncHttpTaskFailed(AsyncHttpTask task, Exception e) {
         this.invokeOnAdRequestFailed(e);
     }
 
-    private void fillInDefaults()
-    {
-        if (!this.requestParameters.containsKey(PubnativeContract.Request.BUNDLE_ID))
-        {
+    private void fillInDefaults() {
+        if (!this.requestParameters.containsKey(PubnativeContract.Request.BUNDLE_ID)) {
             this.requestParameters.put(PubnativeContract.Request.BUNDLE_ID, IdUtil.getPackageName(this.context));
         }
-        if (!this.requestParameters.containsKey(PubnativeContract.Request.OS))
-        {
+        if (!this.requestParameters.containsKey(PubnativeContract.Request.OS)) {
             this.requestParameters.put(PubnativeContract.Request.OS, "android");
         }
-        if (!this.requestParameters.containsKey(PubnativeContract.Request.OS_VERSION))
-        {
+        if (!this.requestParameters.containsKey(PubnativeContract.Request.OS_VERSION)) {
             this.requestParameters.put(PubnativeContract.Request.OS_VERSION, Build.VERSION.RELEASE);
         }
-        if (!this.requestParameters.containsKey(PubnativeContract.Request.DEVICE_MODEL))
-        {
+        if (!this.requestParameters.containsKey(PubnativeContract.Request.DEVICE_MODEL)) {
             this.requestParameters.put(PubnativeContract.Request.DEVICE_MODEL, Build.MODEL);
         }
-        if (!this.requestParameters.containsKey(PubnativeContract.Request.DEVICE_RESOLUTION))
-        {
+        if (!this.requestParameters.containsKey(PubnativeContract.Request.DEVICE_RESOLUTION)) {
             DisplayMetrics dm = this.context.getResources().getDisplayMetrics();
             this.requestParameters.put(PubnativeContract.Request.DEVICE_RESOLUTION, dm.widthPixels + "x" + dm.heightPixels);
         }
-        if (!this.requestParameters.containsKey(PubnativeContract.Request.DEVICE_TYPE))
-        {
+        if (!this.requestParameters.containsKey(PubnativeContract.Request.DEVICE_TYPE)) {
             this.requestParameters.put(PubnativeContract.Request.DEVICE_TYPE, IdUtil.isTablet(this.context) ? "tablet" : "phone");
         }
-        if (!this.requestParameters.containsKey(PubnativeContract.Request.LOCALE))
-        {
+        if (!this.requestParameters.containsKey(PubnativeContract.Request.LOCALE)) {
             this.requestParameters.put(PubnativeContract.Request.LOCALE, Locale.getDefault().getLanguage());
         }
         Location location = IdUtil.getLastLocation(this.context);
-        if (location != null)
-        {
-            if (!this.requestParameters.containsKey(PubnativeContract.Request.LAT))
-            {
+        if (location != null) {
+            if (!this.requestParameters.containsKey(PubnativeContract.Request.LAT)) {
                 this.requestParameters.put(PubnativeContract.Request.LAT, String.valueOf(location.getLatitude()));
             }
-            if (!this.requestParameters.containsKey(PubnativeContract.Request.LONG))
-            {
+            if (!this.requestParameters.containsKey(PubnativeContract.Request.LONG)) {
                 this.requestParameters.put(PubnativeContract.Request.LONG, String.valueOf(location.getLongitude()));
             }
         }
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         Uri.Builder uriBuilder = Uri.parse(this.BASE_URL).buildUpon();
-        switch (endpoint)
-        {
+        switch (endpoint) {
             case NATIVE:
                 uriBuilder.appendPath(this.NATIVE_ENDPOINT_URL);
                 break;
@@ -228,37 +200,29 @@ public class AdRequest implements Serializable, AsyncHttpTask.AsyncHttpTaskListe
             default:
                 throw new IllegalArgumentException(endpoint.toString());
         }
-        for (String key : requestParameters.keySet())
-        {
+        for (String key : requestParameters.keySet()) {
             String value = requestParameters.get(key);
-            if (value != null)
-            {
+            if (value != null) {
                 uriBuilder.appendQueryParameter(key, value);
             }
         }
         return uriBuilder.build().toString();
     }
 
-    private void invokeOnAdRequestStarted()
-    {
-        if (this.listener != null)
-        {
+    private void invokeOnAdRequestStarted() {
+        if (this.listener != null) {
             this.listener.onAdRequestStarted(this);
         }
     }
 
-    private void invokeOnAdRequestFinished(ArrayList<? extends NativeAdModel> ads)
-    {
-        if (this.listener != null)
-        {
+    private void invokeOnAdRequestFinished(ArrayList<? extends NativeAdModel> ads) {
+        if (this.listener != null) {
             this.listener.onAdRequestFinished(this, ads);
         }
     }
 
-    private void invokeOnAdRequestFailed(Exception e)
-    {
-        if (this.listener != null)
-        {
+    private void invokeOnAdRequestFailed(Exception e) {
+        if (this.listener != null) {
             this.listener.onAdRequestFailed(this, e);
         }
     }

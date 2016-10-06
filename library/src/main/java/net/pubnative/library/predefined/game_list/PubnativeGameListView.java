@@ -15,17 +15,16 @@ import net.pubnative.library.predefined.PubnativeView;
 import java.util.ArrayList;
 
 public class PubnativeGameListView extends PubnativeView implements
-        OnItemClickListener
-{
+        OnItemClickListener {
     ListView itemsListView;
 
     /**
      * Creates new game list view with the provided ads.
+     *
      * @param activity Activity instance
      * @param ads      Array of ads
      */
-    public PubnativeGameListView(PubnativeActivity activity, ArrayList<NativeAdModel> ads)
-    {
+    public PubnativeGameListView(PubnativeActivity activity, ArrayList<NativeAdModel> ads) {
         super(activity, ads);
         this.ads = ads;
         this.getActivity().getLayoutInflater().inflate(R.layout.pubnative_game_list, this, true);
@@ -35,14 +34,12 @@ public class PubnativeGameListView extends PubnativeView implements
     }
 
     @Override
-    protected void onOrientationChanged(Configuration configuration)
-    {
+    protected void onOrientationChanged(Configuration configuration) {
         // Do nothing, this actually resizes correctly
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-    {
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.v("PubnativeGameListView", "onItemClick: position-" + position);
         NativeAdModel clickedObjectModel = this.ads.get(position);
         clickedObjectModel.open(this.getContext());

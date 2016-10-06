@@ -5,19 +5,18 @@ import net.pubnative.library.PubnativeContract.Response.VideoNativeAd.Vast;
 import org.droidparts.annotation.serialize.XML;
 import org.droidparts.model.Model;
 
-public class VastMediaFile extends Model
-{
+public class VastMediaFile extends Model {
     private static final long serialVersionUID = 2L;
     @XML(attribute = Vast.Ad.InLine.Creatives.Creative.Linear.MediaFiles.MediaFile.ATTR_DELIVERY)
-    public String             delivery;
+    public String delivery;
     @XML(attribute = Vast.Ad.InLine.Creatives.Creative.Linear.MediaFiles.MediaFile.ATTR_HEIGHT)
-    public int                height;
+    public int height;
     @XML(attribute = Vast.Ad.InLine.Creatives.Creative.Linear.MediaFiles.MediaFile.ATTR_SCALABLE)
-    public boolean            scalable;
+    public boolean scalable;
     @XML(attribute = Vast.Ad.InLine.Creatives.Creative.Linear.MediaFiles.MediaFile.ATTR_TYPE)
-    public String             type;
+    public String type;
     @XML(attribute = Vast.Ad.InLine.Creatives.Creative.Linear.MediaFiles.MediaFile.ATTR_WIDTH)
-    public int                width;
+    public int width;
     @XML
-    public String             url;
+    public String url;
 }

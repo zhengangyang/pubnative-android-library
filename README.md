@@ -31,10 +31,21 @@ pubnative-android-library is a collection of Open Source tools to implement API 
 <a name="install"></a>
 # Install
 
-Clone the repository and import the needed projects
+### Gradle
 
-####pubnative-library
-This library handles the basic behaviour to request native ads and build a custom ad view. You will need to add the following activity to your `AndroidManifest.xml` **inside your application tag**
+Add the following line to your module dependencies
+
+```java
+compile 'net.pubnative:library:1.4.7'
+
+```
+
+### Manual
+
+Clone the repository and import the `:library` module
+
+You will also need to add the following meta-data to your `AndroidManifest.xml` **inside your application tag**
+
 ``` xml
 <meta-data android:name="com.google.android.gms.version"
            android:value="@integer/google_play_services_version" />

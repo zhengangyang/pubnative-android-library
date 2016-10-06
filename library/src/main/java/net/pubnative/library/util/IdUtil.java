@@ -1,16 +1,16 @@
 /**
  * Copyright 2014 PubNative GmbH
- *
+ * <p/>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ * <p/>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ * <p/>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,25 +36,20 @@ import com.google.android.gms.ads.identifier.AdvertisingIdClient.Info;
 
 import org.droidparts.util.L;
 
-public class IdUtil
-{
+public class IdUtil {
     /**
      * Checks if an app with the given name is installed in the device.
      * @param context Context object
      * @param pkgName Package name to be checked
      * @return true if app with given package name is installed, else false
      */
-    public static boolean isPackageInstalled(Context context, String pkgName)
-    {
+    public static boolean isPackageInstalled(Context context, String pkgName) {
         boolean result = false;
         PackageManager pm = context.getPackageManager();
-        try
-        {
+        try {
             pm.getPackageInfo(pkgName, 0);
             result = true;
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             // Do nothing
         }
         return result;
@@ -65,20 +60,15 @@ public class IdUtil
      * @param context Context object
      * @return a valid package name if found, else an empty string
      */
-    public static String getPackageName(Context context)
-    {
+    public static String getPackageName(Context context) {
         PackageInfo pInfo = getPackageInfo(context);
         return (pInfo != null) ? pInfo.packageName : "";
     }
 
-    private static PackageInfo getPackageInfo(Context ctx)
-    {
-        try
-        {
+    private static PackageInfo getPackageInfo(Context ctx) {
+        try {
             return ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0);
-        }
-        catch (NameNotFoundException e)
-        {
+        } catch (NameNotFoundException e) {
             L.w("Error getting package info.");
             return null;
         }
@@ -89,8 +79,7 @@ public class IdUtil
      * @param context Context object
      * @return true if the device is a tablet, else false
      */
-    public static boolean isTablet(Context context)
-    {
+    public static boolean isTablet(Context context) {
         boolean xlarge = ((context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) == 4);
         boolean large = ((context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) == Configuration.SCREENLAYOUT_SIZE_LARGE);
         return (xlarge || large);
@@ -101,43 +90,34 @@ public class IdUtil
      * @param context  Context object
      * @param listener Listener to get callback when android ad id is fetched.
      */
-    public static void getAndroidAdvertisingID(Context context, AndroidAdvertisingIDTask.AndroidAdvertisingIDTaskListener listener)
-    {
+    public static void getAndroidAdvertisingID(Context context, AndroidAdvertisingIDTask.AndroidAdvertisingIDTaskListener listener) {
         new AndroidAdvertisingIDTask().setListener(listener).execute(context);
     }
 
-    public static class AndroidAdvertisingIDTask extends AsyncTask<Context, Void, String>
-    {
+    public static class AndroidAdvertisingIDTask extends AsyncTask<Context, Void, String> {
         private AndroidAdvertisingIDTaskListener listener;
-        public interface AndroidAdvertisingIDTaskListener
-        {
+
+        public interface AndroidAdvertisingIDTaskListener {
             void onAndroidAdvertisingIDTaskFinished(String result);
         }
 
-        public AndroidAdvertisingIDTask setListener(AndroidAdvertisingIDTaskListener listener)
-        {
+        public AndroidAdvertisingIDTask setListener(AndroidAdvertisingIDTaskListener listener) {
             this.listener = listener;
             return this;
         }
 
         @Override
-        protected String doInBackground(Context... contexts)
-        {
+        protected String doInBackground(Context... contexts) {
             String result = null;
             Context context = contexts[0];
-            if(context != null)
-            {
+            if (context != null) {
                 Info adInfo = null;
-                try
-                {
+                try {
                     adInfo = AdvertisingIdClient.getAdvertisingIdInfo(context);
-                    if (adInfo != null)
-                    {
+                    if (adInfo != null) {
                         result = adInfo.getId();
                     }
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     Log.e("Pubnative", "Error retrieving androidAdvertisingID: " + e.toString());
                 }
             }
@@ -145,10 +125,8 @@ public class IdUtil
         }
 
         @Override
-        protected void onPostExecute(String result)
-        {
-            if(this.listener != null)
-            {
+        protected void onPostExecute(String result) {
+            if (this.listener != null) {
                 this.listener.onAndroidAdvertisingIDTaskFinished(result);
             }
         }
@@ -159,22 +137,18 @@ public class IdUtil
      * @param context Context object
      * @return Location object if last known location if available, else null
      */
-    public static Location getLastLocation(Context context)
-    {
+    public static Location getLastLocation(Context context) {
         LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         Location loc = null;
-        for (String prov : lm.getProviders(true))
-        {
+        for (String prov : lm.getProviders(true)) {
             loc = lm.getLastKnownLocation(prov);
-            if (loc != null)
-            {
+            if (loc != null) {
                 break;
             }
         }
         return loc;
     }
 
-    private IdUtil()
-    {
+    private IdUtil() {
     }
 }

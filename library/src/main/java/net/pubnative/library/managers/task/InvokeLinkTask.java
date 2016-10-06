@@ -1,16 +1,16 @@
 /**
  * Copyright 2014 PubNative GmbH
- *
+ * <p/>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ * <p/>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ * <p/>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,39 +28,33 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-public class InvokeLinkTask
-{
-    public String                  link;
-    public Context                 context;
+public class InvokeLinkTask {
+    public String link;
+    public Context context;
     private InvokeLinkTaskListener listener;
 
-    public interface InvokeLinkTaskListener
-    {
+    public interface InvokeLinkTaskListener {
         void onInvokeLinkTaskFinished(InvokeLinkTask task);
     }
 
-    public InvokeLinkTask(Context context, InvokeLinkTaskListener listener, String link)
-    {
+    public InvokeLinkTask(Context context, InvokeLinkTaskListener listener, String link) {
         this.link = link;
         this.context = context;
         this.listener = listener;
     }
 
-    public void execute()
-    {
+    public void execute() {
         new Handler(Looper.getMainLooper()).post(new MainThreadRunnable(this.context, this.listener, this.link, this));
     }
 
-    private class MainThreadRunnable implements Runnable
-    {
-        InvokeLinkTask         task;
+    private class MainThreadRunnable implements Runnable {
+        InvokeLinkTask task;
         InvokeLinkTaskListener listener;
-        Context                context;
-        WebView                webView;
-        String                 link;
+        Context context;
+        WebView webView;
+        String link;
 
-        public MainThreadRunnable(Context context, InvokeLinkTaskListener listener, String link, InvokeLinkTask task)
-        {
+        public MainThreadRunnable(Context context, InvokeLinkTaskListener listener, String link, InvokeLinkTask task) {
             this.context = context;
             this.task = task;
             this.listener = listener;
@@ -68,26 +62,21 @@ public class InvokeLinkTask
         }
 
         @Override
-        public void run()
-        {
+        public void run() {
             this.webView = makeWebView();
             this.webView.loadUrl(this.link);
             this.listener.onInvokeLinkTaskFinished(this.task);
         }
 
-        private WebView makeWebView()
-        {
-            WebViewClient wvc = new WebViewClient()
-            {
+        private WebView makeWebView() {
+            WebViewClient wvc = new WebViewClient() {
                 @Override
-                public boolean shouldOverrideUrlLoading(WebView view, String url)
-                {
+                public boolean shouldOverrideUrlLoading(WebView view, String url) {
                     return true;
                 }
 
                 @Override
-                public void onReceivedError(WebView view, int errorCode, String description, String failingUrl)
-                {
+                public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                     // Do nothing
                 }
             };

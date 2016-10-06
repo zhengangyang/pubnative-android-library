@@ -40,29 +40,85 @@
         android:layout_below="@id/pubnative_image"
         android:background="@android:color/darker_gray" />
 
-    <TextView
-        android:id="@+id/interstitial_view"
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/separator_view"
-        android:layout_centerHorizontal="true"
-        android:layout_margin="20dp"
-        android:background="@android:color/darker_gray"
-        android:padding="10dp"
         android:text="Interstitial"
-        android:textAppearance="?android:attr/textAppearanceButton"
-        android:textColor="@android:color/white" />
+        android:id="@+id/btn_interstitial"
+        android:layout_below="@+id/separator_view"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"/>
 
-    <TextView
-        android:id="@+id/game_list_view"
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/interstitial_view"
-        android:layout_centerHorizontal="true"
-        android:background="@android:color/darker_gray"
-        android:padding="10dp"
         android:text="Game List"
-        android:textAppearance="?android:attr/textAppearanceButton"
-        android:textColor="@android:color/white" />
+        android:id="@+id/btn_game_list"
+        android:layout_below="@+id/btn_interstitial"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="10dp"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Native"
+        android:id="@+id/btn_native"
+        android:layout_below="@+id/btn_game_list"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="10dp"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/btn_native"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:id="@+id/native_image"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginBottom="5dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/native_title"
+            android:layout_alignBottom="@+id/native_image"
+            android:layout_toRightOf="@+id/native_image"
+            android:layout_toEndOf="@+id/native_image"
+            android:layout_alignParentTop="true"
+            android:gravity="center_vertical|center_horizontal"
+            android:layout_alignParentRight="true" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/native_image">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/native_banner"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true" />
+        </RelativeLayout>
+    </RelativeLayout>
 
 </RelativeLayout>

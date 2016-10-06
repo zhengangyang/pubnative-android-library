@@ -15,22 +15,17 @@ import net.pubnative.library.renderer.NativeAdRenderer;
 
 import java.util.List;
 
-public class PubnativeGameListAdapter extends ArrayAdapter<NativeAdModel>
-{
-    public PubnativeGameListAdapter(Context context, int resource, List<NativeAdModel> objects)
-    {
+public class PubnativeGameListAdapter extends ArrayAdapter<NativeAdModel> {
+    public PubnativeGameListAdapter(Context context, int resource, List<NativeAdModel> objects) {
         super(context, resource, objects);
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent)
-    {
+    public View getView(int position, View convertView, ViewGroup parent) {
         View result = convertView;
         NativeAdModel model = this.getItem(position);
-        if (model != null)
-        {
-            if (result == null)
-            {
+        if (model != null) {
+            if (result == null) {
                 LayoutInflater inflater = (LayoutInflater) this.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 result = inflater.inflate(R.layout.pubnative_game_list_item, null);
             }

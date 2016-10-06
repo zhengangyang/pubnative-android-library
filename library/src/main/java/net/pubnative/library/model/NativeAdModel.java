@@ -47,15 +47,13 @@ import java.util.ArrayList;
 
 import static android.content.Intent.ACTION_VIEW;
 
-public class NativeAdModel extends Model implements NativeAd, TaskItemListener
-{
-    private static final String LOADING_TEXT     = "Loading...";
-    private static final String MARKET_PREFIX    = "market://details?id=";
+public class NativeAdModel extends Model implements NativeAd, TaskItemListener {
+    private static final String LOADING_TEXT = "Loading...";
+    private static final String MARKET_PREFIX = "market://details?id=";
     private static final String PLAYSTORE_PREFIX = "https://play.google.com/store/apps/details?id=";
 
 
-    public interface Listener
-    {
+    public interface Listener {
         void onAdImpression(NativeAdModel model);
     }
 
@@ -67,56 +65,49 @@ public class NativeAdModel extends Model implements NativeAd, TaskItemListener
     // FIELDS
     //
     @JSON(key = TYPE)
-    public  String                 type;
+    public String type;
     @JSON(key = TITLE)
-    public  String                 title;
+    public String title;
     @JSON(key = DESCRIPTION)
-    public  String                 description;
+    public String description;
     @JSON(key = CTA_TEXT)
-    public  String                 ctaText;
+    public String ctaText;
     @JSON(key = ICON_URL)
-    public  String                 iconUrl;
+    public String iconUrl;
     @JSON(key = BANNER_URL)
-    public  String                 bannerUrl;
+    public String bannerUrl;
     @JSON(key = CLICK_URL)
-    public  String                 click_url;
+    public String click_url;
     @JSON(key = STORE_RATING, optional = true)
-    public  float                  store_rating;
+    public float store_rating;
     @JSON(key = BEACONS)
-    public  ArrayList<BeaconModel> beacons;
+    public ArrayList<BeaconModel> beacons;
     @JSON(key = REVENUE_MODEL)
-    public  String                 revenue_model;
+    public String revenue_model;
     @JSON(key = POINTS)
-    public  String                 points;
+    public String points;
     @JSON(key = PORTRAIT_BANNER_URL, optional = true)
-    public  String                 portraitBannerUrl;
+    public String portraitBannerUrl;
     @JSON(key = APP_DETAILS, optional = true)
-    public  AppDetailsModel        app_details;
-    private Context                context;
-    private Listener               listener;
-    private Dialog                 loadingDialog;
+    public AppDetailsModel app_details;
+    private Context context;
+    private Listener listener;
+    private Dialog loadingDialog;
 
-    public float getStoreRating()
-    {
+    public float getStoreRating() {
         float result = 0;
-        if (this.app_details != null)
-        {
+        if (this.app_details != null) {
             result = this.app_details.store_rating;
-        }
-        else
-        {
+        } else {
             result = this.store_rating;
         }
         return result;
     }
 
-    public String getBeaconURL(String beaconType)
-    {
+    public String getBeaconURL(String beaconType) {
         String result = null;
-        for (BeaconModel beacon : this.beacons)
-        {
-            if (beacon.type.equals(beaconType))
-            {
+        for (BeaconModel beacon : this.beacons) {
+            if (beacon.type.equals(beaconType)) {
                 result = beacon.url;
                 break;
             }
@@ -126,114 +117,93 @@ public class NativeAdModel extends Model implements NativeAd, TaskItemListener
 
     /**
      * Open the click url in Browser or Play Store app based on it's type
+     *
      * @param context Context object
      */
-    public void open(Context context)
-    {
+    public void open(Context context) {
         this.context = context;
-        if(this.context != null)
-        {
-            if (this.click_url != null)
-            {
-                if (this.app_details != null && this.app_details.store_id != null)
-                {
+        if (this.context != null) {
+            if (this.click_url != null) {
+                if (this.app_details != null && this.app_details.store_id != null) {
                     this.doBackgroundRedirect();
-                }
-                else
-                {
+                } else {
                     this.doBrowserRedirect();
                 }
             }
-        }
-        else
-        {
+        } else {
             Log.e("NativeAdModel", "null or invalid context assigned for opening the ad");
         }
     }
 
-    private void doBrowserRedirect()
-    {
+    private void doBrowserRedirect() {
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(this.click_url));
         IntentHelper.startActivityOrWarn(this.context, intent);
     }
 
-    private void doBackgroundRedirect()
-    {
-        try
-        {
+    private void doBackgroundRedirect() {
+        try {
             loadingDialog = ProgressDialog.show(this.context, null, LOADING_TEXT, true);
             AsyncHttpTask task = new AsyncHttpTask(this.context);
-            task.setListener(new AsyncHttpTask.AsyncHttpTaskListener()
-            {
+            task.setListener(new AsyncHttpTask.AsyncHttpTaskListener() {
                 @Override
-                public void onAsyncHttpTaskFinished(AsyncHttpTask task, String result)
-                {
+                public void onAsyncHttpTaskFinished(AsyncHttpTask task, String result) {
                     loadingDialog.dismiss();
                     openInPlayStore(MARKET_PREFIX + NativeAdModel.this.app_details.store_id);
                 }
 
                 @Override
-                public void onAsyncHttpTaskFailed(AsyncHttpTask task, Exception e)
-                {
+                public void onAsyncHttpTaskFailed(AsyncHttpTask task, Exception e) {
                     loadingDialog.dismiss();
                     openInPlayStore(MARKET_PREFIX + NativeAdModel.this.app_details.store_id);
                 }
             });
             task.execute(this.click_url);
-        }
-        catch (Exception ignored)
-        {
+        } catch (Exception ignored) {
             Toast.makeText(context, "Couldn't open the ad", Toast.LENGTH_SHORT).show();
-            if (loadingDialog != null)
-            {
+            if (loadingDialog != null) {
                 loadingDialog.dismiss();
             }
         }
     }
 
-    private void openInPlayStore(String url)
-    {
+    private void openInPlayStore(String url) {
         Intent intent = new Intent(ACTION_VIEW, toPlayStoreUri(url));
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         IntentHelper.startActivityOrWarn(this.context, intent);
     }
 
-    private static Uri toPlayStoreUri(String url)
-    {
-        if (url.startsWith(PLAYSTORE_PREFIX))
-        {
+    private static Uri toPlayStoreUri(String url) {
+        if (url.startsWith(PLAYSTORE_PREFIX)) {
             String pkgName = url.substring(PLAYSTORE_PREFIX.length());
             url = MARKET_PREFIX + pkgName;
         }
         return Uri.parse(url);
     }
 
-    public void confirmBeacon(Context context, String beacon)
-    {
-        if (!TrackingManager.isTrackedBeacon(context, this, beacon))
-        {
+    public void confirmBeacon(Context context, String beacon) {
+        if (!TrackingManager.isTrackedBeacon(context, this, beacon)) {
             TrackingManager.TrackBeacon(context, this, beacon);
         }
     }
 
     /**
      * Start impression tracking in background on given view.
+     *
      * @param context Context object.
      * @param view    View object, whose impression should be tracked.
      */
-    public void confirmImpressionAutomatically(Context context, View view)
-    {
+    public void confirmImpressionAutomatically(Context context, View view) {
         this.confirmImpressionAutomatically(context, view, null);
     }
 
     /**
      * Start impression tracking in background with a listener to track impression confirmation callbacks.
+     *
      * @param context  Context object.
      * @param view     View object, whose impression should be tracked.
      * @param listener listener object to track the impression callbacks
      */
-    public void confirmImpressionAutomatically(Context context, View view, Listener listener)
-    {
+    public void confirmImpressionAutomatically(Context context, View view, Listener listener) {
         this.listener = listener;
         this.context = context;
         TrackViewImpressionTask task = new TrackViewImpressionTask(this, view);
@@ -241,18 +211,15 @@ public class NativeAdModel extends Model implements NativeAd, TaskItemListener
     }
 
     @Override
-    public void onTaskItemListenerFinished(TaskItem item)
-    {
+    public void onTaskItemListenerFinished(TaskItem item) {
         this.confirmBeacon(this.context, Response.NativeAd.Beacon.TYPE_IMPRESSION);
-        if (this.listener != null)
-        {
+        if (this.listener != null) {
             this.listener.onAdImpression(this);
         }
     }
 
     @Override
-    public void onTaskItemListenerFailed(TaskItem item, Exception e)
-    {
+    public void onTaskItemListenerFailed(TaskItem item, Exception e) {
         Log.v("NativeAdModel", "onTaskItemListenerFailed: " + e);
         // No errors should arrive here
     }

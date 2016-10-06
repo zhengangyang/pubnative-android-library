@@ -1,16 +1,16 @@
 /**
  * Copyright 2014 PubNative GmbH
- *
+ * <p/>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ * <p/>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ * <p/>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,30 +38,28 @@ import static org.droidparts.util.Strings.isEmpty;
 import static org.droidparts.util.ui.ViewUtils.setInvisible;
 
 public class NativeAdRenderer extends AdRenderer<NativeAdModel> implements
-        ImageFetchListener
-{
-    private int          imageCounter     = 0;
-    private boolean      finishedInvoked;
+        ImageFetchListener {
+    private int imageCounter = 0;
+    private boolean finishedInvoked;
     public ImageReshaper iconReshaper;
     public ImageReshaper bannerReshaper;
     public ImageReshaper portraitBannerReshaper;
-    public ImageView     iconView;
-    public ImageView     bannerView;
-    public ImageView     portraitBannerView;
-    public RatingBar     ratingView;
-    public TextView      titleView;
-    public TextView      subTitleView;
-    public TextView      descriptionView;
-    public TextView      categoryView;
-    public TextView      downloadView;
-    public boolean       enableAnimations = false;
+    public ImageView iconView;
+    public ImageView bannerView;
+    public ImageView portraitBannerView;
+    public RatingBar ratingView;
+    public TextView titleView;
+    public TextView subTitleView;
+    public TextView descriptionView;
+    public TextView categoryView;
+    public TextView downloadView;
+    public boolean enableAnimations = false;
 
     /**
      * Creates a new ad renderer object
      * @param context valid Context object
      */
-    public NativeAdRenderer(Context context)
-    {
+    public NativeAdRenderer(Context context) {
         super(context);
     }
 
@@ -71,91 +69,68 @@ public class NativeAdRenderer extends AdRenderer<NativeAdModel> implements
      * @param listener listener to track the behaviour of this method
      */
     @Override
-    public void render(NativeAdModel ad, AdRendererListener listener)
-    {
+    public void render(NativeAdModel ad, AdRendererListener listener) {
         super.render(ad, listener);
         this.invokeStarted(this);
         this.finishedInvoked = false;
         this.imageCounter = 3;
-        if (titleView != null)
-        {
+        if (titleView != null) {
             titleView.setText(this.ad.title);
         }
-        if (subTitleView != null)
-        {
+        if (subTitleView != null) {
             subTitleView.setText(this.ad.app_details.category);
         }
-        if (ratingView != null)
-        {
+        if (ratingView != null) {
             ratingView.setRating(this.ad.getStoreRating());
         }
-        if (descriptionView != null)
-        {
+        if (descriptionView != null) {
             descriptionView.setText(this.ad.description);
             setInvisible(isEmpty(this.ad.description), descriptionView);
         }
-        if (categoryView != null)
-        {
+        if (categoryView != null) {
             categoryView.setText(this.ad.app_details.category);
         }
-        if (downloadView != null)
-        {
+        if (downloadView != null) {
             downloadView.setText(this.ad.ctaText);
         }
-        if (iconView != null)
-        {
+        if (iconView != null) {
             this.imageFetcher.attachImage(this.ad.iconUrl, iconView, this.iconReshaper, 0, this);
-        }
-        else
-        {
+        } else {
             this.countDown();
         }
-        if (bannerView != null)
-        {
+        if (bannerView != null) {
             this.imageFetcher.attachImage(this.ad.bannerUrl, bannerView, this.bannerReshaper, 0, this);
-        }
-        else
-        {
+        } else {
             this.countDown();
         }
-        if (portraitBannerView != null)
-        {
+        if (portraitBannerView != null) {
             this.imageFetcher.attachImage(this.ad.portraitBannerUrl, portraitBannerView, this.portraitBannerReshaper, 0, this);
-        }
-        else
-        {
+        } else {
             this.countDown();
         }
     }
 
-    private void countDown()
-    {
-        if (this.imageCounter > 0)
-        {
+    private void countDown() {
+        if (this.imageCounter > 0) {
             this.imageCounter--;
         }
     }
 
-    private void checkFinished()
-    {
-        if (imageCounter <= 0 && !this.finishedInvoked)
-        {
+    private void checkFinished() {
+        if (imageCounter <= 0 && !this.finishedInvoked) {
             this.invokeFinished(this);
             this.finishedInvoked = true;
         }
     }
 
     @Override
-    public void onFetchAdded(ImageView imageView, String imgUrl)
-    {
+    public void onFetchAdded(ImageView imageView, String imgUrl) {
         setInvisible(true, imageView);
     }
 
     @Override
-    public void onFetchCompleted(ImageView imageView, String imgUrl, Bitmap bm)
-    {
-        if (this.enableAnimations)
-        {
+    public void onFetchCompleted(ImageView imageView, String imgUrl, Bitmap bm) {
+        if (this.enableAnimations) {
             AlphaAnimation fadeIn = new AlphaAnimation(0.0f, 1.0f);
             fadeIn.setInterpolator(new AccelerateInterpolator());
             fadeIn.setDuration(250);
@@ -167,16 +142,14 @@ public class NativeAdRenderer extends AdRenderer<NativeAdModel> implements
     }
 
     @Override
-    public void onFetchFailed(ImageView imageView, String imgUrl, Exception e)
-    {
+    public void onFetchFailed(ImageView imageView, String imgUrl, Exception e) {
         this.countDown();
         this.invokeFailed(this, e);
         this.checkFinished();
     }
 
     @Override
-    public void onFetchProgressChanged(ImageView imageView, String imgUrl, int kBTotal, int kBReceived)
-    {
+    public void onFetchProgressChanged(ImageView imageView, String imgUrl, int kBTotal, int kBReceived) {
         // Do nothing
     }
 }
