@@ -51,6 +51,7 @@ public class NativeAdActivity extends Activity implements PubnativeRequest.Liste
     private RelativeLayout mAdContainer;
     // Settings
     private CheckBox       mCustomLoaderEnabled;
+    private CheckBox       mCachingEnabled;
     // Loader
     private View           mCustomLoaderView;
     private View           mCustomLoaderSpiner;
@@ -76,6 +77,7 @@ public class NativeAdActivity extends Activity implements PubnativeRequest.Liste
         mBanner = (ImageView) findViewById(R.id.activity_native_image_banner);
 
         mCustomLoaderEnabled = (CheckBox) findViewById(R.id.activity_native_custom_loader);
+        mCachingEnabled = (CheckBox) findViewById(R.id.activity_native_caching_enable);
         mCustomLoaderView = findViewById(R.id.activity_native_container_loader);
         mCustomLoaderSpiner = findViewById(R.id.activity_native_container_loader_square);
     }
@@ -115,6 +117,7 @@ public class NativeAdActivity extends Activity implements PubnativeRequest.Liste
             Picasso.with(this).load(mCurrentAd.getIconUrl()).into(mIcon);
             Picasso.with(this).load(mCurrentAd.getBannerUrl()).into(mBanner);
             Log.v(TAG, "CUSTOM SPINNER " + mCustomLoaderEnabled.isChecked());
+            mCurrentAd.setUseCaching(mCachingEnabled.isChecked());
             mCurrentAd.startTracking(mAdContainer, this);
             mAdContainer.setVisibility(View.VISIBLE);
         } else {

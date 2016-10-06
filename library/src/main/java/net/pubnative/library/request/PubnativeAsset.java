@@ -11,5 +11,5 @@ public interface PubnativeAsset {
     String RATING         = "rating";
     String ICON           = "icon";
     String BANNER         = "banner";
-    String VAST           = "vast";
+    String VAST           = "vast2";
 }

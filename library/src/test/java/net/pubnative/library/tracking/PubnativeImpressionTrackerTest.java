@@ -1,16 +1,22 @@
 package net.pubnative.library.tracking;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
+import android.view.View;
 
 import net.pubnative.library.BuildConfig;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -22,29 +28,27 @@ import static org.mockito.Mockito.verify;
 public class PubnativeImpressionTrackerTest {
 
     Context applicationContext;
+    Activity activity;
 
     @Before
     public void setUp() {
 
         this.applicationContext = RuntimeEnvironment.application.getApplicationContext();
+        activity = Robolectric.buildActivity(Activity.class)
+                              .create()
+                              .resume()
+                              .get();
     }
 
     @Test
     public void testWithValidListener() {
 
-        PubnativeImpressionTracker.Listener listener = spy(PubnativeImpressionTracker.Listener.class);
+        PubnativeVisibilityTracker.Listener listener = spy(PubnativeVisibilityTracker.Listener.class);
         PubnativeImpressionTracker impressionTracker = spy(PubnativeImpressionTracker.class);
         impressionTracker.mHandler = new Handler();
-        impressionTracker.mListener = listener;
-        impressionTracker.invokeOnTrackerImpression();
-        verify(listener, times(1)).onImpressionDetected(null);
-    }
-
-    @Test
-    public void testWithNullListener() {
-
-        PubnativeImpressionTracker impressionTracker = spy(PubnativeImpressionTracker.class);
-        impressionTracker.mHandler = new Handler();
-        impressionTracker.invokeOnTrackerImpression();
+        impressionTracker.mVisibilityListener = listener;
+        View view = new View(activity);
+        impressionTracker.addView(view);
+        verify(impressionTracker, times(1)).getVisibilityTracker();
     }
 }

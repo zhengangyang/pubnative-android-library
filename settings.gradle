@@ -1,1 +1,1 @@
-include ':library', ':library.demo', ':library.interstitial', ':library.banner', ':library.feed.banner'
+include ':library', ':library.demo', ':library.interstitial', ':library.banner', ':library.feed.banner', ':library.video', ':library.feed.video'

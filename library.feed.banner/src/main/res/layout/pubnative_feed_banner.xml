@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/pubnative_feed_banner_container"
+    android:id="@+id/pubnative_feed_banner"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/pubnative_infeed_white">
 
     <RelativeLayout
-        android:id="@+id/pubnative_feed_banner_view"
+        android:id="@+id/pubnative_feed_banner_container"
         android:layout_width="320dp"
         android:layout_height="250dp"
         android:layout_centerInParent="true"
@@ -57,7 +57,9 @@
             android:id="@+id/footer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true">
+            android:layout_alignParentBottom="true"
+            android:focusable="false"
+            android:clickable="false">
 
             <TextView
                 android:id="@+id/pubnative_feed_banner_description"
@@ -66,6 +68,8 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
+                android:focusable="false"
+                android:clickable="false"
                 android:layout_marginRight="5dp"
                 android:layout_toLeftOf="@+id/pubnative_feed_banner_button"
                 android:ellipsize="end"
@@ -77,11 +81,14 @@
                 android:layout_height="26dp"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
+                android:focusable="false"
+                android:clickable="false"
                 android:textSize="12sp"
                 android:background="@drawable/pubnative_cta_button"
                 android:textColor="@color/pubnative_infeed_white" />
 
         </RelativeLayout>
+
     </RelativeLayout>
 
     <TextView
@@ -94,4 +101,20 @@
         android:text="@string/pubnative_interstitial_sponsored_text"
         android:textColor="@color/pubnative_infeed_sponsored_text_color"
         android:textSize="10sp" />
+
+    <RelativeLayout
+        android:id="@+id/pubnative_Feed_banner_loader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/pubnative_feed_banner_container"
+        android:layout_alignBottom="@+id/pubnative_feed_banner_container"
+        android:gravity="center"
+        android:background="#77000000">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/progressBar"/>
+    </RelativeLayout>
+
 </RelativeLayout>

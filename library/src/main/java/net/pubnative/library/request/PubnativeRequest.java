@@ -273,6 +273,13 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
             };
             setParameterArray(PubnativeRequest.Parameters.ASSET_FIELDS, assets);
         }
+
+        if(!mRequestParameters.containsKey(Parameters.META_FIELDS)) {
+            String[] metas = new String[] {
+                    "revenuemodel"
+            };
+            setParameterArray(PubnativeRequest.Parameters.META_FIELDS, metas);
+        }
     }
 
     protected String getRequestURL() {
@@ -355,7 +362,7 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
                         if (resultModels == null) {
                             resultModels = new ArrayList<PubnativeAdModel>();
                         }
-                        resultModels.add(PubnativeAdModel.create(adModel));
+                        resultModels.add(PubnativeAdModel.create(mContext, adModel));
                     }
                 }
                 invokeOnSuccess(resultModels);

@@ -25,84 +25,85 @@ package net.pubnative.library.tracking;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewTreeObserver;
 
-import net.pubnative.library.utils.SystemUtils;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PubnativeImpressionTracker {
 
-    private static       String   TAG                             = PubnativeImpressionTracker.class.getSimpleName();
-    private static final float    VISIBILITY_PERCENTAGE_THRESHOLD = 0.50f;
-    private static final long     VISIBILITY_TIME_THRESHOLD       = 1000;
-    private static final long     VISIBILITY_CHECK_INTERVAL       = 200;
-    protected            Listener mListener                       = null;
-    protected            View     mView                           = null;
-    protected            Thread   mCheckImpressionThread          = null;
-    protected            Thread   mViewTreeObserverThread         = null;
-    protected            boolean  mIsTrackingInProgress           = false;
-    protected            boolean  mTrackingShouldStop             = false;
-    protected            Handler  mHandler                        = null;
+    private static final String TAG                         = PubnativeImpressionTracker.class.getSimpleName();
+    private static final int    VISIBILITY_CHECK_MILLIS     = 250;
+    private static final int    VISIBILITY_TIME_MILLIS      = 1000;
+    private static final double DEFAULT_MIN_VISIBLE_PERCENT = 0.5;
+
+    protected WeakReference<Listener>             mImpressionListener = null;
+    protected List<View>                          mTrackingViews      = new ArrayList<View>();
+    protected HashMap<View, Long>                 mVisibleViews       = new HashMap<View, Long>();
+    protected Handler                             mHandler            = new Handler(Looper.getMainLooper());
+    protected Runnable                            mImpressionRunnable = new ImpressionRunnable();
+    protected PubnativeVisibilityTracker          mVisibilityTracker  = null;
+    protected PubnativeVisibilityTracker.Listener mVisibilityListener = new PubnativeVisibilityTracker.Listener() {
+        @Override
+        public void onVisibilityCheck(List<View> visibleViews, List<View> invisibleViews) {
+
+            if (mImpressionListener.get() == null) {
+                clear();
+            } else {
+
+                for (View visibleView : visibleViews) {
+
+                    if (mVisibleViews.containsKey(visibleView)) {
+                        // View already tracked, leave it there
+                        continue;
+                    }
+
+                    mVisibleViews.put(visibleView, SystemClock.uptimeMillis());
+                }
+
+                for (View invisibleView : invisibleViews) {
+                    mVisibleViews.remove(invisibleView);
+                }
+
+                if (!mVisibleViews.isEmpty()) {
+                    scheduleNextRun();
+                }
+            }
+        }
+    };
 
     //==============================================================================================
     // LISTENER
     //==============================================================================================
-
-    /**
-     * Listener for callbacks about tracking behaviour
-     */
     public interface Listener {
 
-        /**
-         * Called when the impression is detected
-         *
-         * @param view view where the impression was detected
-         */
-        void onImpressionDetected(View view);
+        void onImpression(View visibleView);
     }
 
     //==============================================================================================
-    // CONFIRM IMPRESSION
+    // Object
     //==============================================================================================
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
 
-    private class CheckImpressionRunnable implements Runnable {
+    @Override
+    public boolean equals(Object o) {
 
-        @Override
-        public void run() {
-            // note first visible time
-            long startTimestamp = System.currentTimeMillis();
-            Log.v(TAG, "checkImpression - started");
-            // loop to make sure view is visible on screen for at least 1sec
-            while (true) {
-                long elapsedTime = System.currentTimeMillis() - startTimestamp;
-                Log.v(TAG, "checkImpression - Current elapsed visible time: " + elapsedTime + "ms");
-                // If view is already tracked or not visible it returns from the loop without confirming impression
-                if (mTrackingShouldStop) {
-                    Log.v(TAG, "checkImpression - Tracking was cancelled");
-                    stopImpressionTracking();
-                    break;
-                } else if (!SystemUtils.isVisibleOnScreen(mView, VISIBILITY_PERCENTAGE_THRESHOLD)) {
-                    Log.v(TAG, "checkImpression - view is not visible in the screen, we will stop checking");
-                    stopImpressionTracking();
-                    break;
-                } else {
-                    if (elapsedTime >= VISIBILITY_TIME_THRESHOLD) {
-                        Log.v(TAG, "checkImpression - impression confirmed");
-                        invokeOnTrackerImpression();
-                        removeListeners();
-                        stopImpressionTracking();
-                        break;
-                    } else {
-                        try {
-                            // pausing thread for 200ms (VISIBILITY_CHECK_INTERVAL)
-                            Thread.sleep(VISIBILITY_CHECK_INTERVAL);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
+        Log.v(TAG, "equals");
+
+        if (o instanceof View) {
+            return mTrackingViews.contains(o);
+        } else if (o instanceof Listener) {
+            return mImpressionListener.equals(o);
+        } else {
+            return super.equals(o);
         }
     }
 
@@ -111,142 +112,132 @@ public class PubnativeImpressionTracker {
     //==============================================================================================
 
     /**
-     * This method stops tracking of the configured view
+     * Sets listener for callbacks related to the impression of added views
+     * @param listener valid listener for callbacks
      */
-    public void stopTracking() {
+    public void setListener(Listener listener) {
 
-        Log.v(TAG, "stopTracking");
-        removeListeners();
-        mTrackingShouldStop = true;
-        stopImpressionTracking();
-        mListener = null;
+        Log.v(TAG, "setListener");
+        mImpressionListener = new WeakReference<Listener>(listener);
     }
 
     /**
-     * This method starts tracking of the configured view
-     * @param view valid view for tracking
-     * @param listener valid listener for getting callbacks about the behaviour
+     * Adds a view to the list of views to be tracked
+     *
+     * @param view view that you want ot start tracking, if the view is already being tracked this
+     *             will do nothing and will continue tracking the view as it was.
      */
-    public void startTracking(View view, Listener listener) {
+    public void addView(View view) {
 
-        Log.v(TAG, "startTracking");
-        if (listener == null) {
-            Log.e(TAG, "Error: No listener for callbacks, dropping call");
-        } else if (view == null) {
-            Log.e(TAG, "Error: No view to track, dropping call");
-        } else {
-            mListener = listener;
-            mView = view;
-            mHandler = new Handler(Looper.getMainLooper());
-            // Impression tracking
-            waitForTreeObserverAlive();
-        }
-    }
-
-    //==============================================================================================
-    // Private
-    //==============================================================================================
-
-    private ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
-
-                @Override
-                public void onGlobalLayout() {
-
-                    checkImpression();
-                }
-            };
-    private ViewTreeObserver.OnScrollChangedListener onScrollChangedListener = new ViewTreeObserver.OnScrollChangedListener() {
-
-                @Override
-                public void onScrollChanged() {
-
-                    checkImpression();
-                }
-            };
-
-    private synchronized void checkImpression() {
-
-        if (mIsTrackingInProgress || mTrackingShouldStop) {
+        Log.v(TAG, "addView");
+        if (mTrackingViews.contains(view)) {
             return;
         }
-        if (SystemUtils.isVisibleOnScreen(mView, VISIBILITY_PERCENTAGE_THRESHOLD)) {
-            if (mCheckImpressionThread == null) {
-                mIsTrackingInProgress = true;
-                mCheckImpressionThread = new Thread(new CheckImpressionRunnable());
-                mCheckImpressionThread.start();
-            }
-        }
+
+        mTrackingViews.add(view);
+        getVisibilityTracker().addView(view, DEFAULT_MIN_VISIBLE_PERCENT);
     }
 
-    private void stopImpressionTracking() {
+    /**
+     * Stops tracking the view
+     *
+     * @param view view that you want to stop tracking
+     */
+    public void removeView(View view) {
 
-        mIsTrackingInProgress = false;
-        if (mCheckImpressionThread != null) {
-            mCheckImpressionThread.interrupt();
-            mCheckImpressionThread = null;
-        }
-        if (mViewTreeObserverThread != null) {
-            mViewTreeObserverThread.interrupt();
-            mViewTreeObserverThread = null;
-        }
+        Log.v(TAG, "removeView");
+        mTrackingViews.remove(view);
+        mVisibleViews.remove(view);
+        getVisibilityTracker().removeView(view);
     }
 
-    private void waitForTreeObserverAlive() {
+    /**
+     * Tells if the current tracker is tracking something
+     *
+     * @return true if it's tracking something, false if not
+     */
+    public boolean isEmpty() {
 
-        if (mViewTreeObserverThread == null) {
-            mViewTreeObserverThread = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-
-                    try {
-                        while (!mView.getViewTreeObserver().isAlive()) {
-                            Thread.sleep(VISIBILITY_CHECK_INTERVAL);
-                        }
-                        addListeners();
-                    } catch (Exception e) {
-                        Log.e(TAG, e.toString());
-                    }
-                }
-            });
-        }
-        mViewTreeObserverThread.start();
+        Log.v(TAG, "isEmpty");
+        return mTrackingViews.isEmpty();
     }
 
-    private void addListeners() {
+    /**
+     * Clears all tracking views from this tracker
+     */
+    public void clear() {
 
-        ViewTreeObserver observer = mView.getViewTreeObserver();
-        if (observer != null && observer.isAlive()) {
-            observer.addOnGlobalLayoutListener(onGlobalLayoutListener);
-            observer.addOnScrollChangedListener(onScrollChangedListener);
+        Log.v(TAG, "clear");
+        for (View view : mTrackingViews) {
+            PubnativeImpressionManager.stopTrackingView(view);
         }
-    }
 
-    private void removeListeners() {
-
-        ViewTreeObserver observer = mView.getViewTreeObserver();
-        if (observer != null && observer.isAlive()) {
-            observer.removeGlobalOnLayoutListener(onGlobalLayoutListener);
-            observer.removeOnScrollChangedListener(onScrollChangedListener);
+        mHandler.removeMessages(0);
+        mTrackingViews.clear();
+        mVisibleViews.clear();
+        if (mVisibilityTracker != null) {
+            mVisibilityTracker.clear();
+            mVisibilityTracker = null;
         }
     }
 
     //==============================================================================================
-    // Listener helpers
+    // PRIVATE
     //==============================================================================================
 
-    protected void invokeOnTrackerImpression() {
+    protected PubnativeVisibilityTracker getVisibilityTracker() {
 
-        Log.v(TAG, "invokeOnTrackerImpression");
-        mHandler.post(new Runnable() {
+        if (mVisibilityTracker == null) {
+            mVisibilityTracker = new PubnativeVisibilityTracker();
+            mVisibilityTracker.setListener(mVisibilityListener);
+        }
+        return mVisibilityTracker;
+    }
 
-            @Override
-            public void run() {
+    protected void scheduleNextRun() {
 
-                if (mListener != null) {
-                    mListener.onImpressionDetected(mView);
+        if (mHandler.hasMessages(0)) {
+            return;
+        }
+        mHandler.postDelayed(mImpressionRunnable, VISIBILITY_CHECK_MILLIS);
+    }
+
+    //==============================================================================================
+    // INNER CLASSES
+    //==============================================================================================
+
+    protected class ImpressionRunnable implements Runnable {
+
+        private List<View> mRemovedViews;
+
+        ImpressionRunnable() {
+            mRemovedViews = new ArrayList<View>();
+        }
+
+        @Override
+        public void run() {
+            for (Map.Entry<View, Long> entry : mVisibleViews.entrySet()) {
+
+                View visibleView = entry.getKey();
+                Long addedTimestamp = entry.getValue();
+
+                if (!(SystemClock.uptimeMillis() - addedTimestamp >= VISIBILITY_TIME_MILLIS)) {
+                    continue;
                 }
+
+                if (mImpressionListener.get() != null) {
+                    mImpressionListener.get().onImpression(visibleView);
+                }
+                mRemovedViews.add(visibleView);
             }
-        });
+
+            for (View view : mRemovedViews) {
+                PubnativeImpressionManager.stopTrackingView(view);
+            }
+            mRemovedViews.clear();
+            if (!mVisibleViews.isEmpty()) {
+                scheduleNextRun();
+            }
+        }
     }
 }

@@ -8,4 +8,6 @@
     <string name="action_interstitial">Interstitial</string>
     <string name="action_banner">Banner</string>
     <string name="action_feed_banner">InFeed Banner</string>
+    <string name="action_video">Video Ad</string>
+    <string name="action_feed_video">InFeed Video</string>
 </resources>

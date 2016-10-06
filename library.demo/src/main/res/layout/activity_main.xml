@@ -52,6 +52,24 @@
         android:onClick="onInFeedBannerClick"
         android:text="@string/action_feed_banner" />
 
+    <Button
+        android:id="@+id/buttonVideoAd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/buttonInFeedBanner"
+        android:layout_centerHorizontal="true"
+        android:onClick="onVideoClick"
+        android:text="@string/action_video" />
+
+    <Button
+        android:id="@+id/buttonFeedVideo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/buttonVideoAd"
+        android:layout_centerHorizontal="true"
+        android:onClick="onFeedVideoClick"
+        android:text="@string/action_feed_video" />
+
     <TextView
         android:id="@+id/activity_main_separator"
         android:layout_width="match_parent"

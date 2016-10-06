@@ -56,6 +56,8 @@ dependencies {
     compile project(':library.interstitial')
     compile project(':library.banner')
     compile project(':library.feed.banner')
+    compile project(':library.video')
+    compile project(':library.feed.video')
     compile 'com.squareup.picasso:picasso:2.5.2'
 }
 //==================================================================================================

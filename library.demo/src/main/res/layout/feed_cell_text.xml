@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/feed_cell_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="#77000000"
+        android:padding="10dp"
+        android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed consequat orci ac vestibulum fringilla. Proin sem dolor, aliquet in accumsan ut, egestas venenatis lacus. Etiam vel libero ex. Nulla at sapien eget purus pulvinar pulvinar. Nam sit amet vehicula sem, id venenatis libero. Vestibulum non lacus vitae mi cursus pulvinar. Praesent rhoncus, dui pretium ultricies luctus, augue nunc faucibus leo, quis semper tortor nisi in ligula. In sit amet mattis dolor. Fusce ac elit erat. Nulla consequat posuere scelerisque. Sed convallis convallis erat molestie tristique."
+        android:textColor="@android:color/white"/>
+
+</RelativeLayout>

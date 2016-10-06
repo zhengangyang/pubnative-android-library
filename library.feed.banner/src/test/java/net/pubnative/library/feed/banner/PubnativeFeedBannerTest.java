@@ -1,9 +1,9 @@
 package net.pubnative.library.feed.banner;
 
 import android.os.Handler;
+import android.view.View;
 
 import net.pubnative.library.request.PubnativeRequest;
-import net.pubnative.library.request.model.PubnativeAdModel;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,17 +11,11 @@ import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = net.pubnative.library.BuildConfig.class,
@@ -107,6 +101,8 @@ public class PubnativeFeedBannerTest {
     public void invokeLoadFinish_withNullListener_shouldPass() {
         PubnativeFeedBanner banner = spy(PubnativeFeedBanner.class);
         banner.mHandler = new Handler();
+        banner.mContainer = new View(RuntimeEnvironment.application.getApplicationContext());
+        banner.mLoader = new View(RuntimeEnvironment.application.getApplicationContext());
         banner.invokeLoadFinish();
     }
 
@@ -114,31 +110,13 @@ public class PubnativeFeedBannerTest {
     public void invokeLoadFinish_withValidListener_invokesLoadFinish() {
         PubnativeFeedBanner banner = spy(PubnativeFeedBanner.class);
         banner.mHandler = new Handler();
+        banner.mContainer = new View(RuntimeEnvironment.application.getApplicationContext());
+        banner.mLoader = new View(RuntimeEnvironment.application.getApplicationContext());
         PubnativeFeedBanner.Listener listener = mock(PubnativeFeedBanner.Listener.class);
         banner.mListener = listener;
         banner.invokeLoadFinish();
 
         verify(listener).onPubnativeFeedBannerLoadFinish(eq(banner));
-    }
-
-    @Test
-    public void invokeShow_withNullListener_shouldPass() {
-
-        PubnativeFeedBanner banner = spy(PubnativeFeedBanner.class);
-        banner.mHandler = new Handler();
-        banner.invokeShow();
-    }
-
-    @Test
-    public void invokeShow_withValidListener_invokesShow() {
-
-        PubnativeFeedBanner banner = spy(PubnativeFeedBanner.class);
-        PubnativeFeedBanner.Listener listener = mock(PubnativeFeedBanner.Listener.class);
-        banner.mListener = listener;
-        banner.mHandler = new Handler();
-        banner.invokeShow();
-
-        verify(listener).onPubnativeFeedBannerShow(eq(banner));
     }
 
     @Test

@@ -23,7 +23,9 @@ pubnative-android-library is a collection of Open Source tools to implement API 
     * [Predefined](#usage_predefined)
         * [Interstitial](#usage_predefined_interstitial)
         * [Banner](#usage_predefined_banner)
+        * [Video](#usage_predefined_video)
         * [In-Feed Banner](#usage_predefined_feed_banner)
+        * [In-Feed Video](#usage_predefined_feed_video)
 * [Misc](#misc)
     * [Proguard](#misc_proguard)
     * [Dependencies](#misc_dependencies)
@@ -58,7 +60,7 @@ Optionally but not necessary to improve user targeting:
 Add the following line to your module dependencies
 
 ```
-compile 'net.pubnative:library:2.1.1'
+compile 'net.pubnative:library:2.2.1'
 ```
 
 <a name="install_manual"></a>
@@ -178,7 +180,7 @@ There are 2 more methods to mention here:
 
 Add the following line to your module dependencies
 ```
-compile 'net.pubnative:library.interstitial:2.1.0'
+compile 'net.pubnative:library.interstitial:2.2.1'
 ```
 Sample usage
 ```
@@ -195,7 +197,7 @@ interstitial.show();
 
 Add the following line to your module dependencies
 ```
-compile 'net.pubnative:library.banner:2.1.0'
+compile 'net.pubnative:library.banner:2.2.1'
 ```
 Sample usage
 ```
@@ -216,10 +218,10 @@ Banner positions available are
 
 <a name="usage_predefined_feed_banner"></a>
 ### In-Feed Banner
-``
+
 Add the following line to your module dependencies
 ```
-compile 'net.pubnative:library.feed.banner:2.1.0'
+compile 'net.pubnative:library.feed.banner:2.2.1'
 ```
 Sample usage
 ```
@@ -228,10 +230,45 @@ feedBanner.setListener(this);
 feedBanner.load(<CONTEXT>, <YOUR_APP_TOKEN_HERE>);
 
 // Once the ad is loaded ......
-feedBanner.show(<CELL_VIEW>);
+feedBanner.getView();
 ```
+As you can see, you will get a fully created view and you can place it in any parent view.
 
-As you can see, you need to specify the cell where the feed banner will be rendered, it will adjust it's size to your cell size.
+<a name="usage_predefined_video"></a>
+### Video
+
+Add the following line to your module dependencies
+```
+compile 'net.pubnative:library.video:2.2.1'
+```
+Sample usage
+```
+PubnativeVideo video = new PubnativeVideo();
+video.setListener(this);
+video.load(<CONTEXT>, <YOUR_APP_TOKEN_HERE>);
+
+// Once the ad is loaded ......
+video.show();
+```
+Video will be shown fullscreen.
+
+<a name="usage_predefined_feed_video"></a>
+### In-Feed Video
+
+Add the following line to your module dependencies
+```
+compile 'net.pubnative:library.feed.video:2.2.1'
+```
+Sample usage
+```
+PubnativeFeedVideo feedVideo = new PubnativeFeedVideo();
+feedVideo.setListener(this);
+feedVideo.load(<CONTEXT>, <YOUR_APP_TOKEN_HERE>);
+
+// Once the ad is loaded ......
+feedVideo.getView();
+```
+As you can see, you will get a fully created view and you can place it in any parent view.
 
 <a name="misc"></a>
 # Misc

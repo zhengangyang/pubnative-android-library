@@ -80,4 +80,20 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(this, InFeedBannerActivity.class);
         startActivity(intent);
     }
+
+    public void onVideoClick(View view) {
+
+        Log.v(TAG, "onVideoClick");
+        // Launch VideoAd activity
+        Intent intent = new Intent(this, VideoAdActivity.class);
+        startActivity(intent);
+    }
+
+    public void onFeedVideoClick(View view) {
+
+        Log.v(TAG, "onFeedVideoClick");
+        // Launch FeedVideo activity
+        Intent intent = new Intent(this, InFeedVideoActivity.class);
+        startActivity(intent);
+    }
 }

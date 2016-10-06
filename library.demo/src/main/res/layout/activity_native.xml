@@ -10,17 +10,24 @@
         android:layout_height="wrap_content">
 
         <CheckBox
-            android:id="@+id/activity_native_custom_loader"
+        android:id="@+id/activity_native_custom_loader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:text="Use custom spiner"/>
+
+        <CheckBox
+            android:id="@+id/activity_native_caching_enable"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:text="Use custom spiner"/>
+            android:layout_below="@id/activity_native_custom_loader"
+            android:text="Use caching for clicks"/>
 
         <Button
             android:id="@+id/activity_native_btn_request"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/activity_native_custom_loader"
+            android:layout_below="@id/activity_native_caching_enable"
             android:onClick="onRequestClick"
             android:text="Request"/>
 

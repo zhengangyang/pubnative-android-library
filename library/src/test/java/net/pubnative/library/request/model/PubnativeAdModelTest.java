@@ -23,19 +23,27 @@
 
 package net.pubnative.library.request.model;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
+import net.pubnative.URLDriller;
 import net.pubnative.library.BuildConfig;
 import net.pubnative.library.request.model.api.PubnativeAPIV3AdModel;
+import net.pubnative.library.request.model.api.PubnativeAPIV3DataModel;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.stubbing.Answer;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -43,18 +51,24 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class,
         sdk = 21)
 public class PubnativeAdModelTest {
 
-    Context applicationContext;
+    Context  applicationContext;
+    Activity activity;
 
     @Before
     public void setUp() {
 
         this.applicationContext = RuntimeEnvironment.application.getApplicationContext();
+        activity = Robolectric.buildActivity(Activity.class)
+                              .create()
+                              .resume()
+                              .get();
     }
 
     @Test
@@ -107,8 +121,8 @@ public class PubnativeAdModelTest {
         PubnativeAdModel model = spy(PubnativeAdModel.class);
         model.mData = adDataModel;
         PubnativeAdModel.Listener listener = mock(PubnativeAdModel.Listener.class);
-        View adView = spy(new View(applicationContext));
-        View clickableView = spy(new View(applicationContext));
+        View adView = spy(new View(activity));
+        View clickableView = spy(new View(activity));
         model.startTracking(adView, clickableView, listener);
         verify(clickableView, times(1)).setOnClickListener(any(View.OnClickListener.class));
     }
@@ -120,8 +134,8 @@ public class PubnativeAdModelTest {
         PubnativeAdModel model = spy(PubnativeAdModel.class);
         model.mData = adDataModel;
         PubnativeAdModel.Listener listener = mock(PubnativeAdModel.Listener.class);
-        View adView = spy(new View(applicationContext));
-        View clickableView = spy(new View(applicationContext));
+        View adView = spy(new View(activity));
+        View clickableView = spy(new View(activity));
         model.startTracking(adView, clickableView, listener);
         verify(adView, never()).setOnClickListener(any(View.OnClickListener.class));
     }
@@ -134,8 +148,44 @@ public class PubnativeAdModelTest {
         PubnativeAdModel model = spy(PubnativeAdModel.class);
         model.mData = adDataModel;
         PubnativeAdModel.Listener listener = mock(PubnativeAdModel.Listener.class);
-        View adView = spy(new View(applicationContext));
+        View adView = spy(new View(activity));
         model.startTracking(adView, listener);
         verify(adView, times(1)).setOnClickListener(any(View.OnClickListener.class));
     }
+
+    @Test
+    public void openUrl_withValidData_onPubnativeAdModelOpenOfferCalled() {
+        PubnativeAPIV3AdModel adDataModel = spy(PubnativeAPIV3AdModel.class);
+        String url = "http://www.google.com";
+        adDataModel.link = url;
+        PubnativeAdModel model = spy(PubnativeAdModel.class);
+        model.mData = adDataModel;
+        View adView = spy(new View(activity));
+        View clickableView = spy(new View(activity));
+        PubnativeAdModel.Listener listener = mock(PubnativeAdModel.Listener.class);
+        model.startTracking(adView, clickableView, listener);
+        model.openURL(url);
+
+        verify(listener).onPubnativeAdModelOpenOffer(eq(model));
+    }
+
+    @Test
+    public void startOnClick_withValidData_willRemoveLoadingView() {
+
+        PubnativeAPIV3AdModel adDataModel = spy(PubnativeAPIV3AdModel.class);
+        PubnativeAdModel model = spy(PubnativeAdModel.class);
+        model.mData = adDataModel;
+        String url = "http://www.google.com";
+        ViewGroup container = new RelativeLayout(applicationContext);
+        View adView = spy(new View(activity));
+        View clickableView = spy(new View(activity));
+        container.addView(adView);
+        container.addView(clickableView);
+        PubnativeAdModel.Listener listener = mock(PubnativeAdModel.Listener.class);
+        model.startTracking(adView, clickableView, listener);
+        model.onURLDrillerFinish(url);
+
+        verify(model).getLoadingView();
+    }
+
 }

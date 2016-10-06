@@ -1,0 +1,33 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/darker_gray">
+
+
+    <Button
+        android:id="@+id/activity_feed_request_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onRequestClick"
+        android:text="Request"/>
+
+    <ListView
+        android:id="@+id/activity_feed_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/activity_feed_request_button"/>
+
+    <RelativeLayout
+        android:id="@+id/activity_feed_loader"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#77000000"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="70dp"
+            android:layout_height="70dp"/>
+    </RelativeLayout>
+
+</RelativeLayout>

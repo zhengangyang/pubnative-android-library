@@ -30,6 +30,7 @@ import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.location.Location;
 import android.location.LocationManager;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
@@ -192,5 +193,11 @@ public class SystemUtils {
         // CASE 4: When the view is outside of screen bounds such that no part of it is visible then the default value(false) of result will return.
         // We don't need to put explicit condition for this case.
         return result;
+    }
+
+    public static int dpToPx(Context context, int dp) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        int px = Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
+        return px;
     }
 }
