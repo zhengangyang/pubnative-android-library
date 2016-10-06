@@ -19,52 +19,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package net.pubnative.library.vast;
+package net.pubnative.library.util;
 
-import java.util.ArrayList;
+import org.droidparts.persist.AbstractPrefsManager;
 
-import net.pubnative.library.vast.Creative.TrackingEvent;
+import android.content.Context;
 
-import org.droidparts.annotation.serialize.XML;
-import org.droidparts.model.Model;
+public class PrefsManager extends AbstractPrefsManager {
 
-public class VastAd extends Model {
-	private static final long serialVersionUID = 1L;
+	private static final int VER = 1;
 
-	//
+	private static final String ADV_ID = "adv_id";
 
-	public String getVideoUrl() {
-		return creatives.get(0).mediaFiles.get(0).url;
+	public PrefsManager(Context ctx) {
+		super(ctx, VER);
 	}
 
-	public String getImpressionUrl() {
-		return impressionUrl;
+	public String getAdvId() {
+		return getPreferences().getString(ADV_ID, "");
 	}
 
-	public String getEventUrl(VastEvent ev) {
-		Creative cr = creatives.get(0);
-		for (TrackingEvent te : cr.trackingEvents) {
-			if (ev.key.equals(te.event)) {
-				return te.url;
-			}
-		}
-		return null;
+	public void setAdvId(String id) {
+		saveString(ADV_ID, id);
 	}
-
-	//
-
-	private static final String BASE = "Ad" + XML.SUB + "InLine" + XML.SUB;
-
-	@XML(tag = "Ad", attribute = "id")
-	public long id;
-	@XML(tag = BASE + "AdTitle")
-	public String title;
-	@XML(tag = BASE + "Description")
-	public String description;
-	@XML(tag = BASE + "Impression")
-	public String impressionUrl;
-
-	@XML(tag = BASE + "Creatives", attribute = "Creative")
-	public ArrayList<Creative> creatives;
-
 }
