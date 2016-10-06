@@ -30,7 +30,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.location.Location;
 import android.location.LocationManager;
-import android.webkit.WebView;
 
 public class IdUtil
 {
@@ -97,11 +96,7 @@ public class IdUtil
         return loc;
     }
 
-    public static String getUserAgent(Context ctx)
-    {
-        return new WebView(ctx).getSettings().getUserAgentString();
-    }
-
     private IdUtil()
-    {}
+    {
+    }
 }

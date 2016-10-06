@@ -76,35 +76,33 @@ public class KeyUtil
     {
         switch (key)
         {
-        case RequestInfo.BUNDLE_ID:
-            return IdUtil.getPackageName(ctx);
-        case RequestInfo.USER_AGENT:
-            return IdUtil.getUserAgent(ctx);
-        case RequestInfo.OS:
-            return "android";
-        case RequestInfo.OS_VERSION:
-            return Build.VERSION.RELEASE;
-        case RequestInfo.DEVICE_MODEL:
-            return Build.MODEL;
-        case RequestInfo.LOCALE:
-            return Locale.getDefault().getLanguage();
-        case RequestInfo.DEVICE_RESOLUTION:
-            DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
-            return dm.widthPixels + "x" + dm.heightPixels;
-        case RequestInfo.DEVICE_TYPE:
-            return getSW(ctx) < 600 ? "phone" : "tablet";
-        case RequestInfo.LAT:
-            Location lat = IdUtil.getLastLocation(ctx);
-            return (lat != null) ? String.valueOf(lat.getLatitude()) : null;
-        case RequestInfo.LONG:
-            Location lon = IdUtil.getLastLocation(ctx);
-            return (lon != null) ? String.valueOf(lon.getLongitude()) : null;
-        case UserIdentifier.ANDROID_ADVERTISER_ID:
-            return getAdvId(ctx);
-        case UserIdentifier.NO_USER_ID:
-            return isEmpty(getAdvId(ctx)) ? "1" : "0";
-        default:
-            return null;
+            case RequestInfo.BUNDLE_ID:
+                return IdUtil.getPackageName(ctx);
+            case RequestInfo.OS:
+                return "android";
+            case RequestInfo.OS_VERSION:
+                return Build.VERSION.RELEASE;
+            case RequestInfo.DEVICE_MODEL:
+                return Build.MODEL;
+            case RequestInfo.LOCALE:
+                return Locale.getDefault().getLanguage();
+            case RequestInfo.DEVICE_RESOLUTION:
+                DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
+                return dm.widthPixels + "x" + dm.heightPixels;
+            case RequestInfo.DEVICE_TYPE:
+                return getSW(ctx) < 600 ? "phone" : "tablet";
+            case RequestInfo.LAT:
+                Location lat = IdUtil.getLastLocation(ctx);
+                return (lat != null) ? String.valueOf(lat.getLatitude()) : null;
+            case RequestInfo.LONG:
+                Location lon = IdUtil.getLastLocation(ctx);
+                return (lon != null) ? String.valueOf(lon.getLongitude()) : null;
+            case UserIdentifier.ANDROID_ADVERTISER_ID:
+                return getAdvId(ctx);
+            case UserIdentifier.NO_USER_ID:
+                return isEmpty(getAdvId(ctx)) ? "1" : "0";
+            default:
+                return null;
         }
     }
 
@@ -138,5 +136,6 @@ public class KeyUtil
     }
 
     private KeyUtil()
-    {}
+    {
+    }
 }

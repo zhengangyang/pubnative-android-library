@@ -32,15 +32,14 @@ import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import net.pubnative.library.PubNativeContract;
 import net.pubnative.library.PubNativeListener;
 import net.pubnative.library.model.holder.AdHolder;
 import net.pubnative.library.model.holder.NativeAdHolder;
 import net.pubnative.library.model.holder.VideoAdHolder;
 import net.pubnative.library.model.request.AdRequest;
-import net.pubnative.library.model.response.Ad;
 import net.pubnative.library.model.response.NativeAd;
-import net.pubnative.library.task.GetAdsTask;
-import net.pubnative.library.task.SendConfirmationTask;
+import net.pubnative.library.task.AsyncHttpTask;
 import net.pubnative.library.util.ImageFetcher;
 import net.pubnative.library.util.MiscUtils;
 import net.pubnative.library.util.ViewUtil;
@@ -49,11 +48,11 @@ import net.pubnative.library.widget.CountDownView;
 import net.pubnative.library.widget.VideoPopup;
 import net.pubnative.library.widget.ViewPopup;
 
-import org.droidparts.concurrent.task.AsyncTaskResultListener;
-import org.droidparts.net.http.HTTPResponse;
 import org.droidparts.net.image.ImageFetchListener;
 import org.droidparts.net.image.ImageReshaper;
-import org.droidparts.util.L;
+import org.droidparts.persist.serializer.JSONSerializer;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.Intent;
@@ -62,6 +61,7 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Handler;
+import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -107,7 +107,39 @@ public class PubNativeWorker
         {
             ctx = holders[0].getView().getContext().getApplicationContext();
             imageFetcher = new ImageFetcher(ctx);
-            new GetAdsTask<>(ctx, req, makeAdsResultListener(listener, holders)).execute();
+            try
+            {
+                String jsonString = new AsyncHttpTask(ctx).execute(req.buildUri().toString()).get();
+                Log.v("PubnativeWorker", "Request result" + jsonString);
+                if (jsonString != null)
+                {
+                    JSONObject jsonObject = new JSONObject(jsonString);
+                    JSONArray arr = jsonObject.getJSONArray(PubNativeContract.Response.ADS);
+                    JSONSerializer jsonSerializer = new JSONSerializer<>(NativeAd.class, ctx);
+                    ArrayList<NativeAd> list = (ArrayList<NativeAd>) jsonSerializer.deserializeAll(arr);
+                    if (list.isEmpty())
+                    {
+                        onLoaded();
+                    }
+                    else
+                    {
+                        for (int i = 0; i < list.size(); i++)
+                        {
+                            AdHolder<NativeAd> holder = (AdHolder<NativeAd>) holders[i];
+                            holder.ad = (NativeAd) list.get(i);
+                            processAd(holder);
+                        }
+                        for (int i = list.size(); i < holders.length; i++)
+                        {
+                            setInvisible(true, holders[i].getView());
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                onError(e);
+            }
         }
         else
         {
@@ -151,43 +183,6 @@ public class PubNativeWorker
     public static void onDestroy()
     {
         workerItems.clear();
-    }
-
-    //
-    @SuppressWarnings("unchecked")
-    private static <T extends Ad> AsyncTaskResultListener<ArrayList<Ad>> makeAdsResultListener(final PubNativeListener listener, final AdHolder<?>... holders)
-    {
-        AsyncTaskResultListener<ArrayList<Ad>> resultListener = new AsyncTaskResultListener<ArrayList<Ad>>()
-        {
-            @Override
-            public void onAsyncTaskSuccess(ArrayList<Ad> result)
-            {
-                if (result.isEmpty())
-                {
-                    onLoaded();
-                }
-                else
-                {
-                    for (int i = 0; i < result.size(); i++)
-                    {
-                        AdHolder<T> holder = (AdHolder<T>) holders[i];
-                        holder.ad = (T) result.get(i);
-                        processAd(holder);
-                    }
-                    for (int i = result.size(); i < holders.length; i++)
-                    {
-                        setInvisible(true, holders[i].getView());
-                    }
-                }
-            }
-
-            @Override
-            public void onAsyncTaskFailure(Exception ex)
-            {
-                onError(ex);
-            }
-        };
-        return resultListener;
     }
 
     @SuppressWarnings(
@@ -516,13 +511,19 @@ public class PubNativeWorker
                     if (startedTracking && (now - wi.firstAppeared) > SHOWN_TIME)
                     {
                         wi.confirmed = true;
-                        new SendConfirmationTask(ctx, confirmationListener, wi.holder.ad).execute();
-                    }
-                    else
-                        if (!startedTracking && getVisiblePercent(v) > VISIBLE_PERCENT)
+                        try
                         {
-                            wi.firstAppeared = now;
+                            String result = new AsyncHttpTask(wi.getContext()).execute(wi.holder.ad.getConfirmationUrl()).get();
+                            Log.v("Pubnative", "confirm impression result: " + result);
                         }
+                        catch (Exception e)
+                        {
+                        }
+                    }
+                    else if (!startedTracking && getVisiblePercent(v) > VISIBLE_PERCENT)
+                    {
+                        wi.firstAppeared = now;
+                    }
                 }
             }
         }
@@ -549,21 +550,19 @@ public class PubNativeWorker
                                     wi.preparing = true;
                                     wi.mp.prepareAsync();
                                 }
-                                else
-                                    if (wi.prepared && !wi.mp.isPlaying())
+                                else if (wi.prepared && !wi.mp.isPlaying())
+                                {
+                                    if (wi.inFeedVideo() || wi.fullScreen)
                                     {
-                                        if (wi.inFeedVideo() || wi.fullScreen)
-                                        {
-                                            wi.mp.start();
-                                        }
+                                        wi.mp.start();
                                     }
+                                }
                             }
                         }
-                        else
-                            if (wi.mp.isPlaying())
-                            {
-                                wi.mp.pause();
-                            }
+                        else if (wi.mp.isPlaying())
+                        {
+                            wi.mp.pause();
+                        }
                     }
                 }
             }
@@ -622,102 +621,88 @@ public class PubNativeWorker
         }
     }
 
-    private static final Runnable                              checkRunnable        = new Runnable()
-                                                                                    {
-                                                                                        @Override
-                                                                                        public void run()
-                                                                                        {
-                                                                                            try
-                                                                                            {
-                                                                                                checkConfirmation();
-                                                                                                checkVideo();
-                                                                                                cleanUp();
-                                                                                            }
-                                                                                            catch (Exception e)
-                                                                                            {
-                                                                                                onError(e);
-                                                                                            }
-                                                                                        }
-                                                                                    };
-    private static final AsyncTaskResultListener<HTTPResponse> confirmationListener = new AsyncTaskResultListener<HTTPResponse>()
-                                                                                    {
-                                                                                        @Override
-                                                                                        public void onAsyncTaskSuccess(HTTPResponse resp)
-                                                                                        {
-                                                                                            L.d(resp);
-                                                                                        }
+    private static final Runnable           checkRunnable      = new Runnable()
+                                                               {
+                                                                   @Override
+                                                                   public void run()
+                                                                   {
+                                                                       try
+                                                                       {
+                                                                           checkConfirmation();
+                                                                           checkVideo();
+                                                                           cleanUp();
+                                                                       }
+                                                                       catch (Exception e)
+                                                                       {
+                                                                           onError(e);
+                                                                       }
+                                                                   }
+                                                               };
+    private static final ImageFetchListener ifListener         = new ImageFetchListener()
+                                                               {
+                                                                   @Override
+                                                                   public void onFetchAdded(ImageView imageView, String imgUrl)
+                                                                   {
+                                                                       imageCounter++;
+                                                                   }
 
-                                                                                        @Override
-                                                                                        public void onAsyncTaskFailure(Exception ex)
-                                                                                        {
-                                                                                            L.w(ex);
-                                                                                        }
-                                                                                    };
-    private static final ImageFetchListener                    ifListener           = new ImageFetchListener()
-                                                                                    {
-                                                                                        @Override
-                                                                                        public void onFetchAdded(ImageView imageView, String imgUrl)
-                                                                                        {
-                                                                                            imageCounter++;
-                                                                                        }
+                                                                   @Override
+                                                                   public void onFetchCompleted(final ImageView imageView, String imgUrl, Bitmap bm)
+                                                                   {
+                                                                       countDown();
+                                                                   }
 
-                                                                                        @Override
-                                                                                        public void onFetchCompleted(final ImageView imageView, String imgUrl, Bitmap bm)
-                                                                                        {
-                                                                                            countDown();
-                                                                                        }
+                                                                   @Override
+                                                                   public void onFetchFailed(ImageView imageView, String imgUrl, Exception e)
+                                                                   {
+                                                                       countDown();
+                                                                       onError(e);
+                                                                   }
 
-                                                                                        @Override
-                                                                                        public void onFetchFailed(ImageView imageView, String imgUrl, Exception e)
-                                                                                        {
-                                                                                            countDown();
-                                                                                            onError(e);
-                                                                                        }
+                                                                   @Override
+                                                                   public void onFetchProgressChanged(ImageView imageView, String imgUrl, int kBTotal, int kBReceived)
+                                                                   {
+                                                                       // pass
+                                                                   }
 
-                                                                                        @Override
-                                                                                        public void onFetchProgressChanged(ImageView imageView, String imgUrl, int kBTotal, int kBReceived)
-                                                                                        {
-                                                                                            // pass
-                                                                                        }
+                                                                   private void countDown()
+                                                                   {
+                                                                       imageCounter--;
+                                                                       if (imageCounter == 0)
+                                                                       {
+                                                                           onLoaded();
+                                                                       }
+                                                                   }
+                                                               };
+    private static VideoPopup.Listener      videoPopupListener = new VideoPopup.Listener()
+                                                               {
+                                                                   @Override
+                                                                   public void didVideoPopupSkip(VideoPopup vp, WorkerItem<?> wi)
+                                                                   {
+                                                                       vp.dismiss();
+                                                                       ((VideoAdHolder) wi.holder).getView(((VideoAdHolder) wi.holder).videoViewId).performClick();
+                                                                   }
 
-                                                                                        private void countDown()
-                                                                                        {
-                                                                                            imageCounter--;
-                                                                                            if (imageCounter == 0)
-                                                                                            {
-                                                                                                onLoaded();
-                                                                                            }
-                                                                                        }
-                                                                                    };
-    private static VideoPopup.Listener                         videoPopupListener   = new VideoPopup.Listener()
-                                                                                    {
-                                                                                        @Override
-                                                                                        public void didVideoPopupSkip(VideoPopup vp, WorkerItem<?> wi)
-                                                                                        {
-                                                                                            vp.dismiss();
-                                                                                            ((VideoAdHolder) wi.holder).getView(((VideoAdHolder) wi.holder).videoViewId).performClick();
-                                                                                        }
+                                                                   @Override
+                                                                   public void didVideoPopupClose(VideoPopup vp, WorkerItem<?> wi)
+                                                                   {
+                                                                       popupView = parentView = null;
+                                                                       vp.dismiss();
+                                                                   }
 
-                                                                                        @Override
-                                                                                        public void didVideoPopupClose(VideoPopup vp, WorkerItem<?> wi)
-                                                                                        {
-                                                                                            popupView = parentView = null;
-                                                                                            vp.dismiss();
-                                                                                        }
-
-                                                                                        @Override
-                                                                                        public void didVideoPopupDismiss(WorkerItem<?> wi, TextureView parentTv)
-                                                                                        {
-                                                                                            wi.fullScreen = false;
-                                                                                            if (parentTv != null)
-                                                                                            {
-                                                                                                ViewUtil.setSurface(wi.mp, parentTv);
-                                                                                            }
-                                                                                            else
-                                                                                            {
-                                                                                                wi.mp.stop();
-                                                                                            }
-                                                                                            vp = null;
-                                                                                        }
-                                                                                    };
+                                                                   @Override
+                                                                   public void didVideoPopupDismiss(WorkerItem<?> wi, TextureView parentTv)
+                                                                   {
+                                                                       wi.fullScreen = false;
+                                                                       if (parentTv != null)
+                                                                       {
+                                                                           ViewUtil.setSurface(wi.mp, parentTv);
+                                                                       }
+                                                                       else
+                                                                       {
+                                                                           wi.mp.stop();
+                                                                       }
+                                                                       vp = null;
+                                                                   }
+                                                               };
 }

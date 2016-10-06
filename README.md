@@ -31,6 +31,7 @@ PubNative Interstitials provides ready formats & widgets .
 ```xml
 <!-- REQUIRED -->
 <uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 <!-- OPTIONAL -->
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 ```
@@ -152,7 +153,7 @@ PubNative Library also provides with a simple method to show predefined ads just
 
 * **Initialize** the library caling `init(Context ctx, String appToken)` method prior to any interstitial request.
 * **(OPTIONAL)** Set up a listener to follow up the ad workflow
-* **Request** interstitials with `show(Activity activity, PubNativeInterstitialsType type, int adCount)` interstitial types are:  
+* **Request** interstitials with `show(Activity activity, PubNativeInterstitialsType type, int adCount)` interstitial types are:
   * `PubNativeInterstitialsType.INTERSTITIAL`: Shows a full screen ad
   * `PubNativeInterstitialsType.VIDEO_INTERSTITIAL`: Shows a full screen video ad
 

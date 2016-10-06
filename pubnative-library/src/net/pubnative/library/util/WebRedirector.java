@@ -22,13 +22,12 @@
 package net.pubnative.library.util;
 
 import static android.content.Intent.ACTION_VIEW;
-import static org.droidparts.util.Strings.isNotEmpty;
 import net.pubnative.library.R;
+import net.pubnative.library.task.AsyncHttpTask;
+import net.pubnative.library.task.AsyncHttpTask.HttpAsyncJSONTaskListener;
 
-import org.droidparts.util.L;
 import org.droidparts.util.intent.IntentHelper;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -36,19 +35,14 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.net.Uri;
-import android.webkit.WebChromeClient;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 
 public class WebRedirector implements OnCancelListener
 {
     private static final String MARKET_PREFIX    = "market://details?id=";
     private static final String PLAYSTORE_PREFIX = "https://play.google.com/store/apps/details?id=";
-    private WebView             webView;
     private final Activity      act;
     private final String        pkgName;
     private final String        link;
-    private Watchdog            doggy;
     private Dialog              loadingDialog;
     private boolean             cancelled        = false;
 
@@ -67,86 +61,47 @@ public class WebRedirector implements OnCancelListener
 
     public void doBackgroundRedirect(int timeout)
     {
-        if (doggy != null)
-        {
-            doggy.stop();
-        }
-        if (isNotEmpty(pkgName))
-        {
-            doggy = new Watchdog(timeout, directRedirect);
-            doggy.start();
-        }
         try
         {
             loadingDialog = ProgressDialog.show(act, null, act.getString(R.string.loading___), true);
-            webView = makeWebView();
-            webView.loadUrl(link);
+            AsyncHttpTask task = new AsyncHttpTask(this.act);
+            task.setListener(new HttpAsyncJSONTaskListener()
+            {
+                @Override
+                public void onHttpAsyncJsonFinished(AsyncHttpTask task, String result)
+                {
+                    loadingDialog.dismiss();
+                    openInPlayStore(MARKET_PREFIX + pkgName);
+                }
+
+                @Override
+                public void onHttpAsyncJsonFailed(AsyncHttpTask task, Exception e)
+                {
+                    loadingDialog.dismiss();
+                    openInPlayStore(MARKET_PREFIX + pkgName);
+                }
+            });
+            task.execute(link);
         }
         catch (Exception ignored)
-        {}
+        {
+            if (loadingDialog != null)
+            {
+                loadingDialog.dismiss();
+            }
+        }
     }
 
     public void cancel()
     {
         cancelled = true;
-        if (doggy != null)
-        {
-            doggy.stop();
-        }
-        try
-        {
-            webView.stopLoading();
-            loadingDialog.dismiss();
-        }
-        catch (Exception ignored)
-        {}
+        loadingDialog.dismiss();
     }
 
     @Override
     public void onCancel(DialogInterface dialog)
     {
         cancel();
-    }
-
-    @SuppressLint("SetJavaScriptEnabled")
-    private WebView makeWebView()
-    {
-        WebViewClient wvc = new WebViewClient()
-        {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url)
-            {
-                if (isPlayStoreLink(url))
-                {
-                    openInPlayStore(url);
-                }
-                else
-                {
-                    view.loadUrl(url);
-                }
-                return true;
-            }
-
-            @Override
-            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl)
-            {
-                L.w("Page error code : %s, desc : %s.", errorCode, description);
-                openInPlayStore(MARKET_PREFIX + pkgName);
-            }
-        };
-        WebView wv = new WebView(act);
-        wv.setWebChromeClient(new WebChromeClient());
-        wv.clearCache(true);
-        wv.clearHistory();
-        wv.getSettings().setJavaScriptEnabled(true);
-        wv.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
-        wv.setWebViewClient(wvc);
-        return wv;
-    }
-
-    private static boolean isPlayStoreLink(String url)
-    {
-        return url.startsWith(MARKET_PREFIX) || url.startsWith(PLAYSTORE_PREFIX);
     }
 
     private void openInPlayStore(String url)
@@ -169,14 +124,4 @@ public class WebRedirector implements OnCancelListener
         }
         return Uri.parse(url);
     }
-
-    private final Runnable directRedirect = new Runnable()
-                                          {
-                                              @Override
-                                              public void run()
-                                              {
-                                                  L.w("Redirect timeout.");
-                                                  openInPlayStore(MARKET_PREFIX + pkgName);
-                                              }
-                                          };
 }
