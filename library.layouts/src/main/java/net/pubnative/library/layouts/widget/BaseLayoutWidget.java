@@ -78,6 +78,7 @@ public abstract class BaseLayoutWidget extends RelativeLayout
 
     public abstract void show();
     public abstract void hide();
+    public abstract void destroy();
     public abstract void setModel(PubnativeAdModel adModel);
 
     /**

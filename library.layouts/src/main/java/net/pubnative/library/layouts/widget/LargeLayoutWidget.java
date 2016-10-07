@@ -50,6 +50,7 @@ public class LargeLayoutWidget extends BaseLayoutWidget
     private Width                       mWidth;
     private WindowManager               mWindowManager;
     private LayoutParams                mLayoutParams;
+    private boolean                     mIsVideoPlaying;
 
     public LargeLayoutWidget(Context context) {
         super(context);
@@ -85,7 +86,6 @@ public class LargeLayoutWidget extends BaseLayoutWidget
         mPlayer = (VASTPlayer) mContainer.findViewById(R.id.player);
         mPlayer.setListener(this);
 
-        //In case of full screen video
         mLayoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         mLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
         mFullScreenLayout = new RelativeLayout(context) {
@@ -137,18 +137,17 @@ public class LargeLayoutWidget extends BaseLayoutWidget
     public void hide() {
 
         Log.v(TAG, "hide");
-        if (mIsShown && mVASTModel != null) {
-            mIsShown = false;
-            mPlayer.stop();
-            mPlayer.destroy();
-        }
-        if (mFullScreenLayout.getParent() != null) {
-            mWindowManager.removeView(mFullScreenLayout);
-        }
-        if (mAdModel != null) {
-            mAdModel.stopTracking();
-        }
+        removeAdFromScreen();
+        setVisibility(GONE);
         invokeHide();
+    }
+
+    @Override
+    public void destroy() {
+
+        Log.v(TAG, "destroy");
+        removeAdFromScreen();
+        mVASTModel = null;
     }
 
     @Override
@@ -273,18 +272,23 @@ public class LargeLayoutWidget extends BaseLayoutWidget
         }
     }
 
-    protected void destroy() {
+    protected void removeAdFromScreen() {
 
-        Log.v(TAG, "destroy");
-        if (mVASTModel != null){
-            mIsShown = false;
+        Log.v(TAG, "removeAdFromScreen");
+        if (mVASTModel != null) {
+            if (mIsVideoPlaying) {
+                mPlayer.stop();
+            }
             mPlayer.destroy();
         }
         if (mFullScreenLayout.getParent() != null) {
             mWindowManager.removeView(mFullScreenLayout);
         }
-        mAdModel = null;
-        mVASTModel = null;
+        if (mAdModel != null) {
+            mAdModel.stopTracking();
+        }
+        mIsVideoPlaying = false;
+        mIsShown = false;
     }
 
     //==============================================================================================
@@ -299,14 +303,16 @@ public class LargeLayoutWidget extends BaseLayoutWidget
         Log.v(TAG, "onVASTPlayerLoadFinish");
         mPlayer.setVisibility(VISIBLE);
         mPlayer.play();
+        mIsVideoPlaying = true;
     }
 
     @Override
     public void onVASTPlayerFail(Exception exception) {
 
         Log.v(TAG, "onVASTPlayerFail");
+        mIsVideoPlaying = false;
         invokeLoadFail(new Exception("PubnativeLayouts - show error: error loading player"));
-        hide();
+        destroy();
     }
 
     @Override
@@ -319,7 +325,8 @@ public class LargeLayoutWidget extends BaseLayoutWidget
     public void onVASTPlayerPlaybackFinish() {
 
         Log.v(TAG, "onVASTPlayerPlaybackFinish");
-        destroy();
+        mPlayer.stop();
+        mIsVideoPlaying = false;
     }
 
     @Override

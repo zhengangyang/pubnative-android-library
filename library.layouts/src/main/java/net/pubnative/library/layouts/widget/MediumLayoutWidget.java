@@ -97,9 +97,11 @@ public class MediumLayoutWidget extends BaseLayoutWidget
         if (mWidth != null) {
             setWidth(mWidth);
         }
-        mAdModel.startTracking(mContainer, this);
+
         if (mVASTModel != null) {
             mPlayer.setVisibility(VISIBLE);
+        } else {
+            mAdModel.startTracking(mContainer, this);
         }
     }
 
@@ -107,7 +109,6 @@ public class MediumLayoutWidget extends BaseLayoutWidget
     public void hide() {
 
         Log.v(TAG, "hide");
-        setVisibility(INVISIBLE);
         if (mVASTModel != null && mIsShown) {
 
             if (mIsVideoLoaded && mIsVideoPlaying) {
@@ -119,7 +120,27 @@ public class MediumLayoutWidget extends BaseLayoutWidget
             mIsShown = false;
         }
         mAdModel.stopTracking();
+        setVisibility(GONE);
         invokeHide();
+    }
+
+    @Override
+    public void destroy() {
+
+        Log.v(TAG, "destroy");
+        if (mVASTModel != null) {
+            if (mIsVideoPlaying) {
+                mPlayer.stop();
+            }
+            mPlayer.destroy();
+        }
+        if (mAdModel != null) {
+            mAdModel.stopTracking();
+        }
+        mIsShown = false;
+        mIsVideoLoaded = false;
+        mIsVideoPlaying = false;
+        stopVisibilityTracking();
     }
 
     @Override
@@ -148,6 +169,10 @@ public class MediumLayoutWidget extends BaseLayoutWidget
     public void onPubnativeAdModelClick(PubnativeAdModel pubnativeAdModel, View view) {
 
         Log.v(TAG, "onPubnativeAdModelClick");
+        if (mVASTModel != null) {
+            mIsAlreadyShown = true;
+            mPlayer.stop();
+        }
         invokeClick();
     }
 
@@ -170,6 +195,7 @@ public class MediumLayoutWidget extends BaseLayoutWidget
             @Override
             public void onVASTParserFinished(VASTModel model) {
 
+                mIsTrackingWaiting = true;
                 mVASTModel = model;
                 mPlayer.load(mVASTModel);
                 invokeLoadFinish();
@@ -274,18 +300,18 @@ public class MediumLayoutWidget extends BaseLayoutWidget
         mFooterContainer.setVisibility(GONE);
     }
 
-    protected void destroy() {
+    protected void startTracking() {
 
-        Log.v(TAG, "destroy");
-        if (mVASTModel != null) {
-            mPlayer.destroy();
+        Log.d(TAG, "startTracking");
+        switch (mAdModel.getAssetGroupId()) {
+            case 4: // video only
+                mAdModel.startTracking(mPlayer, null, null);
+                break;
+            case 3:
+            case 18:
+                mAdModel.startTracking(mContainer, mCallToAction, this);
+                break;
         }
-        mAdModel.stopTracking();
-        mAdModel = null;
-        mIsShown = false;
-        mIsVideoLoaded = false;
-        mIsVideoPlaying = false;
-        stopVisibilityTracking();
     }
 
     //==============================================================================================
@@ -306,8 +332,9 @@ public class MediumLayoutWidget extends BaseLayoutWidget
     public void onVASTPlayerFail(Exception exception) {
 
         Log.v(TAG, "onVASTPlayerFail");
+        mIsVideoPlaying = false;
         invokeLoadFail(new Exception("PubnativeLayouts - show error: error loading player"));
-        hide();
+        destroy();
     }
 
     @Override
@@ -329,7 +356,6 @@ public class MediumLayoutWidget extends BaseLayoutWidget
         Log.v(TAG, "onVASTPlayerOpenOffer");
         mIsAlreadyShown = true;
         invokeClick();
-        destroy();
     }
 
     //----------------------------------------------------------------------------------------------
@@ -345,7 +371,7 @@ public class MediumLayoutWidget extends BaseLayoutWidget
             if (mIsTrackingWaiting) {
 
                 mIsTrackingWaiting = false;
-                mAdModel.startTracking(mPlayer, null, null);
+                startTracking();
             }
             if (mIsVideoLoaded && !mIsVideoPlaying && !mIsAlreadyShown) {
                 mPlayer.play();
@@ -355,7 +381,10 @@ public class MediumLayoutWidget extends BaseLayoutWidget
 
         if (invisibleViews.contains(mPlayer)) {
 
-            mPlayer.setVisibility(GONE);
+            if (mIsShown && mIsVideoLoaded && mIsVideoPlaying) {
+                mPlayer.pause();
+                mIsVideoPlaying = false;
+            }
         }
     }
 }

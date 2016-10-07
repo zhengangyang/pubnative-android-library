@@ -219,6 +219,32 @@ public class PubnativeLayouts implements PubnativeRequest.Listener, BaseLayoutWi
         }
     }
 
+    /**
+     * Destroy ad view for this request.
+     */
+    public void destroy() {
+
+        Log.d(TAG, "destroy");
+        if (mBaseLayout != null) {
+            mBaseLayout.destroy();
+            ViewGroup parent = (ViewGroup) mBaseLayout.getParent();
+            if (parent != null) {
+                parent.removeView(mBaseLayout);
+            }
+        }
+    }
+
+    /**
+     * Hide ad view for this request.
+     */
+    public void hide() {
+
+        Log.d(TAG, "hide");
+        if (mBaseLayout != null) {
+            mBaseLayout.hide();
+        }
+    }
+
     protected View getLayout() {
 
         Log.v(TAG, "getLayout");

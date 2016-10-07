@@ -75,9 +75,18 @@ public class SmallLayoutWidget extends BaseLayoutWidget {
     public void hide() {
 
         Log.v(TAG, "hide");
-        setVisibility(INVISIBLE);
         mAdModel.stopTracking();
+        setVisibility(GONE);
         invokeHide();
+    }
+
+    @Override
+    public void destroy() {
+
+        Log.v(TAG, "destroy");
+        if (mAdModel != null) {
+            mAdModel.stopTracking();
+        }
     }
 
     @Override

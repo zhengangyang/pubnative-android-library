@@ -42,6 +42,10 @@ public class AssetLayoutActivity extends Activity implements PubnativeLayouts.Li
 
         int selectedSizeId = mSizeGroup.getCheckedRadioButtonId();
 
+        if (mAssetLayouts != null) {
+            mAssetLayouts.destroy();
+        }
+
         mAssetLayouts = new PubnativeLayouts();
         mAssetLayouts.setListener(this);
         mAssetLayouts.load(this,
