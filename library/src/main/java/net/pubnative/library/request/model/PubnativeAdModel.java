@@ -159,7 +159,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         } else {
             result = mData.getAsset(asset);
             if (result != null) {
-                recordAsset(result.getTracking());
+                recordAsset(result.getStringField("tracking"));
             }
         }
         return result;
@@ -241,7 +241,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         String result = null;
         PubnativeAPIV3DataModel data = getAsset(PubnativeAsset.ICON);
         if (data != null) {
-            result = data.getUrl();
+            result = data.getURL();
         }
         return result;
     }
@@ -268,7 +268,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         String result = null;
         PubnativeAPIV3DataModel data = getAsset(PubnativeAsset.BANNER);
         if (data != null) {
-            result = data.getUrl();
+            result = data.getURL();
         }
         return result;
     }
@@ -285,7 +285,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         String result = null;
         PubnativeAPIV3DataModel data = getAsset(asset);
         if (data != null) {
-            result = data.getUrl();
+            result = data.getURL();
         }
         return result;
     }
@@ -353,7 +353,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         String result = null;
         PubnativeAPIV3DataModel data = getMeta(PubnativeMeta.CONTENT_INFO);
         if (data != null) {
-            result = data.getLink();
+            result = data.getStringField("link");
         }
         return result;
     }
@@ -368,7 +368,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         String result = null;
         PubnativeAPIV3DataModel data = getMeta(PubnativeMeta.CONTENT_INFO);
         if (data != null) {
-            result = data.getIconUrl();
+            result = data.getStringField("icon");
         }
         return result;
     }
@@ -448,7 +448,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
                     PubnativeBeacon beacon = new PubnativeBeacon();
                     beacon.js = data.getStringField("js");
                     beacon.type = beaconType;
-                    beacon.url = data.getUrl();
+                    beacon.url = data.getURL();
                 }
             }
         }
@@ -759,7 +759,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         }
 
         for (PubnativeAPIV3DataModel beaconData : beacons) {
-            String beaconURL = beaconData.getUrl();
+            String beaconURL = beaconData.getURL();
             String beaconJS = beaconData.getStringField("js");
             if (!TextUtils.isEmpty(beaconURL)) {
                 // URL
