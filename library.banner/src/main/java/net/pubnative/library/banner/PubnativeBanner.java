@@ -2,8 +2,7 @@ package net.pubnative.library.banner;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
+import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -16,13 +15,10 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
-
 import net.pubnative.library.request.PubnativeAsset;
 import net.pubnative.library.request.PubnativeRequest;
 import net.pubnative.library.request.model.PubnativeAdModel;
-import net.pubnative.library.widget.PubnativeContentInfoWidget;
+import net.pubnative.library.utils.ImageDownloader;
 
 import java.util.List;
 
@@ -30,24 +26,25 @@ public class PubnativeBanner implements PubnativeRequest.Listener,
                                         PubnativeAdModel.Listener {
 
     public static final String TAG = PubnativeBanner.class.getSimpleName();
-    protected Context                    mContext;
-    protected Size                       mBannerSize;
-    protected Position                   mBannerPosition;
-    protected boolean                    mIsLoading;
-    protected boolean                    mIsShown;
-    protected boolean                    mIsCoppaModeEnabled;
-    protected Listener                   mListener;
-    protected PubnativeAdModel           mAdModel;
-    protected Handler                    mHandler;
+
+    protected Context          mContext;
+    protected Size             mBannerSize;
+    protected Position         mBannerPosition;
+    protected boolean          mIsLoading;
+    protected boolean          mIsShown;
+    protected boolean          mIsCoppaModeEnabled;
+    protected Listener         mListener;
+    protected PubnativeAdModel mAdModel;
+    protected Handler          mHandler;
     // Banner view
-    protected ViewGroup                  mContainer;
-    protected TextView                   mTitle;
-    protected TextView                   mDescription;
-    protected ImageView                  mIcon;
-    protected PubnativeContentInfoWidget mContentInfo;
-    protected RelativeLayout             mBannerView;
-    protected Button                     mInstall;
-    protected TextView                   mAdText;
+    protected ViewGroup        mContainer;
+    protected TextView         mTitle;
+    protected TextView         mDescription;
+    protected ImageView        mIcon;
+    protected View             mContentInfo;
+    protected RelativeLayout   mBannerView;
+    protected Button           mInstall;
+    protected TextView         mAdText;
 
     public enum Size {
         BANNER_50,
@@ -218,16 +215,17 @@ public class PubnativeBanner implements PubnativeRequest.Listener,
             mTitle.setText(mAdModel.getTitle());
             mDescription.setText(mAdModel.getDescription());
             mInstall.setText(mAdModel.getCtaText());
-            Picasso.with(mContext).load(mAdModel.getIconUrl()).into(mIcon);
-            mContentInfo.setIconUrl(mAdModel.getContentInfoIconUrl());
-            mContentInfo.setIconClickUrl(mAdModel.getContentInfoLink());
-            mContentInfo.setContextText(mAdModel.getContentInfoText());
-            mContentInfo.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    mContentInfo.openLayout();
-                }
-            });
+            // remove content info if already exist
+            if(mContentInfo != null) {
+                mBannerView.removeView(mContentInfo);
+            }
+            mContentInfo = mAdModel.getContentInfo(mContext);
+            if(mContentInfo != null) {
+                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                mBannerView.addView(mContentInfo, params);
+            }
             mAdModel.startTracking(mContainer, mBannerView, this);
             mBannerView.setVisibility(View.VISIBLE);
             invokeShow();
@@ -286,7 +284,6 @@ public class PubnativeBanner implements PubnativeRequest.Listener,
         mIcon = (ImageView) banner.findViewById(R.id.pubnative_banner_image);
         mInstall = (Button) banner.findViewById(R.id.pubnative_banner_button);
         mAdText = (TextView) banner.findViewById(R.id.pubnative_banner_ad);
-        mContentInfo = (PubnativeContentInfoWidget) banner.findViewById(R.id.pubnative_content_info);
 
         mBannerView.setLayoutParams(params);
         mContainer.addView(banner);
@@ -412,15 +409,15 @@ public class PubnativeBanner implements PubnativeRequest.Listener,
             invokeLoadFail(new Exception("PubnativeBanner - load error: no-fill"));
         } else {
             mAdModel = ads.get(0);
-            Picasso.with(mContext).load(mAdModel.getIconUrl()).fetch(new Callback() {
-
+            new ImageDownloader().load(mAdModel.getIconUrl(), new ImageDownloader.Listener() {
                 @Override
-                public void onSuccess() {
+                public void onImageLoad(String url, Bitmap bitmap) {
+                    mIcon.setImageBitmap(bitmap);
                     invokeLoadFinish();
                 }
 
                 @Override
-                public void onError() {
+                public void onImageFailed(String url, Exception ex) {
                     invokeLoadFail(new Exception("PubnativeBanner - load error: no-fill"));
                 }
             });

@@ -1,15 +1,13 @@
 //==================================================================================================
 // PROJECT
 //==================================================================================================
-version=project.version?:"BETA"
-group=project.group?:"net.pubnative"
 buildscript {
     repositories {
         jcenter()
         maven { url 'https://maven.fabric.io/public' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.0'
+        classpath classpath_android
         // FABRIC
         classpath 'io.fabric.tools:gradle:1.+'
     }
@@ -24,13 +22,13 @@ task projectInfo << {
 //==================================================================================================
 apply plugin: 'com.android.application'
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion android_compileSdkVersion
+    buildToolsVersion android_buildToolsVersion
 
     defaultConfig {
+        minSdkVersion android_minSdkVersion
+        targetSdkVersion android_targetSdkVersion
         applicationId "net.pubnative.library.demo"
-        minSdkVersion 10
-        targetSdkVersion 23
         versionCode System.getenv("CIRCLE_BUILD_NUM")?System.getenv("CIRCLE_BUILD_NUM").toInteger():1
         versionName project.version?:"BETA"
     }

@@ -34,6 +34,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.RelativeLayout;
 
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
@@ -42,7 +43,6 @@ import net.pubnative.library.request.PubnativeAsset;
 import net.pubnative.library.request.PubnativeRequest;
 import net.pubnative.library.request.model.PubnativeAdModel;
 import net.pubnative.library.tracking.PubnativeVisibilityTracker;
-import net.pubnative.library.widget.PubnativeContentInfoWidget;
 import net.pubnative.player.VASTParser;
 import net.pubnative.player.VASTPlayer;
 import net.pubnative.player.model.VASTModel;
@@ -74,7 +74,7 @@ public class PubnativeFeedVideo implements Parcelable,
     protected PubnativeVisibilityTracker  mVisibilityTracker;
     protected VASTModel                   mVASTModel;
     protected Target                      mBannerTarget;
-    protected PubnativeContentInfoWidget  mContentInfo;
+    protected View                        mContentInfo;
 
     // Video view
     protected VASTPlayer mVASTPlayer;
@@ -327,9 +327,6 @@ public class PubnativeFeedVideo implements Parcelable,
 
             mVASTPlayer = (VASTPlayer) container.findViewById(R.id.player);
             mVASTPlayer.setListener(this);
-
-            mContentInfo = new PubnativeContentInfoWidget(mContext);
-            mVASTPlayer.addView(mContentInfo);
         }
     }
 
@@ -386,16 +383,17 @@ public class PubnativeFeedVideo implements Parcelable,
             startVisibilityTracking();
 
             mAdModel = ads.get(0);
-            // set content info data
-            mContentInfo.setIconUrl(mAdModel.getContentInfoIconUrl());
-            mContentInfo.setIconClickUrl(mAdModel.getContentInfoLink());
-            mContentInfo.setContextText(mAdModel.getContentInfoText());
-            mContentInfo.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    mContentInfo.openLayout();
-                }
-            });
+            // remove content info if already exist
+            if(mContentInfo != null) {
+                mVASTPlayer.removeView(mContentInfo);
+            }
+            mContentInfo = mAdModel.getContentInfo(mContext);
+            if(mContentInfo != null) {
+                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                mVASTPlayer.addView(mContentInfo, params);
+            }
             // Fetch banner
             if (mAdModel.getBannerUrl() != null) {
 

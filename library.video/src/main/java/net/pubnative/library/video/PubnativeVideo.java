@@ -44,7 +44,6 @@ import com.squareup.picasso.Target;
 import net.pubnative.library.request.PubnativeAsset;
 import net.pubnative.library.request.PubnativeRequest;
 import net.pubnative.library.request.model.PubnativeAdModel;
-import net.pubnative.library.widget.PubnativeContentInfoWidget;
 import net.pubnative.player.VASTParser;
 import net.pubnative.player.VASTPlayer;
 import net.pubnative.player.model.VASTModel;
@@ -60,19 +59,19 @@ public class PubnativeVideo implements PubnativeRequest.Listener,
     //==============================================================================================
     // Properties
     //==============================================================================================
-    protected Handler                    mHandler;
-    protected Context                    mContext;
-    protected PubnativeAdModel           mAdModel;
-    protected PubnativeVideo.Listener    mListener;
-    protected boolean                    mIsLoading;
-    protected boolean                    mIsShown;
-    protected boolean                    mIsCoppaModeEnabled;
-    protected WindowManager              mWindowManager;
+    protected Handler                 mHandler;
+    protected Context                 mContext;
+    protected PubnativeAdModel        mAdModel;
+    protected PubnativeVideo.Listener mListener;
+    protected boolean                 mIsLoading;
+    protected boolean                 mIsShown;
+    protected boolean                 mIsCoppaModeEnabled;
+    protected WindowManager           mWindowManager;
 
     // Video view
-    protected RelativeLayout             mContainer;
-    protected VASTPlayer                 mVASTPlayer;
-    protected PubnativeContentInfoWidget mContentInfo;
+    protected RelativeLayout          mContainer;
+    protected VASTPlayer              mVASTPlayer;
+    protected View                    mContentInfo;
 
     /**
      * Interface for callbacks related to the video behaviour
@@ -321,7 +320,6 @@ public class PubnativeVideo implements PubnativeRequest.Listener,
         params.addRule(RelativeLayout.CENTER_IN_PARENT);
         mVASTPlayer = (VASTPlayer) rootView.findViewById(R.id.player);
         mVASTPlayer.setListener(this);
-        mContentInfo = (PubnativeContentInfoWidget) rootView.findViewById(R.id.pubnative_content_info);
         mContainer = new RelativeLayout(mContext) {
 
             @Override
@@ -471,16 +469,17 @@ public class PubnativeVideo implements PubnativeRequest.Listener,
             invokeLoadFail(new Exception("PubnativeVideo - load error: error loading resources"));
         } else {
             mAdModel = ads.get(0);
-            // set content info data
-            mContentInfo.setIconUrl(mAdModel.getContentInfoIconUrl());
-            mContentInfo.setIconClickUrl(mAdModel.getContentInfoLink());
-            mContentInfo.setContextText(mAdModel.getContentInfoText());
-            mContentInfo.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    mContentInfo.openLayout();
-                }
-            });
+            // remove content info if already exist
+            if(mContentInfo != null) {
+                mContainer.removeView(mContentInfo);
+            }
+            mContentInfo = mAdModel.getContentInfo(mContext);
+            if(mContentInfo != null) {
+                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                mContainer.addView(mContentInfo, params);
+            }
             mAdModel.startTracking(mVASTPlayer, null, PubnativeVideo.this);
             Picasso.with(mContext).load(mAdModel.getBannerUrl()).fetch(new Callback() {
 

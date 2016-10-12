@@ -1,8 +1,7 @@
 package net.pubnative.library.interstitial;
 
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
+import android.graphics.Bitmap;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -14,13 +13,10 @@ import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
-
 import net.pubnative.library.request.PubnativeAsset;
 import net.pubnative.library.request.PubnativeRequest;
 import net.pubnative.library.request.model.PubnativeAdModel;
-import net.pubnative.library.widget.PubnativeContentInfoWidget;
+import net.pubnative.library.utils.ImageDownloader;
 
 import java.util.List;
 
@@ -41,7 +37,7 @@ public class PubnativeInterstitial implements PubnativeRequest.Listener,
     protected TextView                       mDescription;
     protected ImageView                      mIcon;
     protected ImageView                      mBanner;
-    protected PubnativeContentInfoWidget     mContentInfo;
+    protected View                           mContentInfo;
     protected RatingBar                      mRating;
     protected TextView                       mCTA;
 
@@ -230,22 +226,22 @@ public class PubnativeInterstitial implements PubnativeRequest.Listener,
         mTitle.setText(mAdModel.getTitle());
         mDescription.setText(mAdModel.getDescription());
         mCTA.setText(mAdModel.getCtaText());
-        Picasso.with(mContext).load(mAdModel.getBannerUrl()).into(mBanner);
-        Picasso.with(mContext).load(mAdModel.getIconUrl()).into(mIcon);
         if (mAdModel.getRating() != 0) {
             mRating.setRating(mAdModel.getRating());
         } else {
             mRating.setVisibility(View.GONE);
         }
-        mContentInfo.setIconUrl(mAdModel.getContentInfoIconUrl());
-        mContentInfo.setIconClickUrl(mAdModel.getContentInfoLink());
-        mContentInfo.setContextText(mAdModel.getContentInfoText());
-        mContentInfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mContentInfo.openLayout();
-            }
-        });
+        // remove content info if already exist
+        if(mContentInfo != null) {
+            mContainer.removeView(mContentInfo);
+        }
+        mContentInfo = mAdModel.getContentInfo(mContext);
+        if(mContentInfo != null) {
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            mContainer.addView(mContentInfo, params);
+        }
         WindowManager.LayoutParams params = new WindowManager.LayoutParams();
         params.width = WindowManager.LayoutParams.MATCH_PARENT;
         params.height = WindowManager.LayoutParams.MATCH_PARENT;
@@ -264,7 +260,6 @@ public class PubnativeInterstitial implements PubnativeRequest.Listener,
         mIcon = (ImageView) interstitial.findViewById(R.id.pn_interstitial_icon);
         mBanner = (ImageView) interstitial.findViewById(R.id.pubnative_interstitial_banner);
         mRating = (RatingBar) interstitial.findViewById(R.id.pubnative_interstitial_rating);
-        mContentInfo = (PubnativeContentInfoWidget) interstitial.findViewById(R.id.pubnative_content_info);
         mCTA = (TextView) interstitial.findViewById(R.id.pubnative_interstitial_cta);
         mContainer = new RelativeLayout(mContext) {
 
@@ -360,32 +355,26 @@ public class PubnativeInterstitial implements PubnativeRequest.Listener,
             invokeLoadFail(new Exception("PubnativeInterstitial - load error: error loading resources"));
         } else {
             mAdModel = ads.get(0);
-            Picasso.with(mContext)
-                    .load(mAdModel.getBannerUrl())
-                    .fetch(new Callback() {
-
+            new ImageDownloader().load(mAdModel.getIconUrl(), new ImageDownloader.Listener() {
                 @Override
-                public void onSuccess() {
+                public void onImageLoad(String url, Bitmap bitmap) {
+                    mIcon.setImageBitmap(bitmap);
+                    new ImageDownloader().load(mAdModel.getBannerUrl(), new ImageDownloader.Listener() {
+                        @Override
+                        public void onImageLoad(String url, Bitmap bitmap) {
+                            mBanner.setImageBitmap(bitmap);
+                            invokeLoadFinish();
+                        }
 
-                    Picasso.with(mContext)
-                            .load(mAdModel.getIconUrl())
-                            .fetch(new Callback() {
-
-                                      @Override
-                                      public void onSuccess () {
-                                          invokeLoadFinish();
-                                      }
-
-                                      @Override
-                                      public void onError () {
-                                          invokeLoadFail(new Exception("PubnativeInterstitial - preload banner error: can't load banner"));
-                                      }
-                                  });
-
+                        @Override
+                        public void onImageFailed(String url, Exception ex) {
+                            invokeLoadFail(new Exception("PubnativeInterstitial - preload banner error: can't load banner"));
+                        }
+                    });
                 }
 
                 @Override
-                public void onError() {
+                public void onImageFailed(String url, Exception ex) {
                     invokeLoadFail(new Exception("PubnativeInterstitial - preload icon error: can't load icon"));
                 }
             });

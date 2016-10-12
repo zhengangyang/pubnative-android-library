@@ -103,11 +103,4 @@
         android:text="@string/pubnative_interstitial_sponsored_text"
         android:textColor="@color/pubnative_interstitial_white"
         android:textSize="10sp"/>
-
-    <net.pubnative.library.widget.PubnativeContentInfoWidget
-        android:id="@+id/pubnative_content_info"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true" />
 </RelativeLayout>

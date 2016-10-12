@@ -1,20 +1,19 @@
 //==================================================================================================
 // PROJECT
 //==================================================================================================
-version=project.version?:"BETA"
-group=project.group?:"net.pubnative"
 buildscript {
     repositories {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.0'
+        // ANDROID
+        classpath classpath_android
         // BINTRAY
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+        classpath classpath_bintray
+        classpath classpath_maven
         // COVERALLS
-        classpath 'net.saliman:gradle-cobertura-plugin:2.3.1'
-        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.6.3'
+        classpath classpath_cobertura
+        classpath classpath_coveralls
     }
 }
 task projectInfo << {
@@ -27,14 +26,14 @@ task projectInfo << {
 //==================================================================================================
 apply plugin: 'com.android.library'
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion android_compileSdkVersion
+    buildToolsVersion android_buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 10
-        targetSdkVersion 23
-        versionCode System.getenv("CIRCLE_BUILD_NUM")?System.getenv("CIRCLE_BUILD_NUM").toInteger():1
-        versionName project.version?:"BETA"
+        minSdkVersion android_minSdkVersion
+        targetSdkVersion android_targetSdkVersion
+        versionCode System.getenv("CIRCLE_BUILD_NUM") ? System.getenv("CIRCLE_BUILD_NUM").toInteger() : 1
+        versionName project.version ?: "BETA"
     }
     buildTypes {
         release {
@@ -49,91 +48,90 @@ android {
 dependencies {
     compile project(path: ':library')
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.squareup.picasso:picasso:2.5.2'
     // JVM tests
     testCompile 'junit:junit:4.12'
     testCompile 'com.squareup.assertj:assertj-android:1.0.0'
     testCompile 'org.robolectric:robolectric:3.1.2'
     testCompile 'org.mockito:mockito-core:2.1.0'
 }
+if (System.getenv("CIRCLECI")) {
 //==================================================================================================
 // COVERALLS
 //==================================================================================================
-apply plugin: "net.saliman.cobertura"
-apply plugin: "com.github.kt3k.coveralls"
-cobertura.coverageFormats = ['html', 'xml']
+    apply plugin: "net.saliman.cobertura"
+    apply plugin: "com.github.kt3k.coveralls"
+    cobertura.coverageFormats = ['html', 'xml']
 //==================================================================================================
 // BINTRAY
 //==================================================================================================
-apply plugin: 'com.jfrog.bintray'
-apply plugin: 'com.github.dcendents.android-maven'
-install {
-    repositories.mavenInstaller {
-        // This generates POM.xml with proper parameters
-        pom {
-            project {
-                packaging 'aar'
-                name project.name
-                description "Predefined banner for PubNative's Android Library"
-                url "http://www.pubnative.net"
-                licenses {
-                    license {
-                        name "MIT"
-                        url "https://opensource.org/licenses/MIT"
+    apply plugin: 'com.jfrog.bintray'
+    apply plugin: 'com.github.dcendents.android-maven'
+    install {
+        repositories.mavenInstaller {
+            // This generates POM.xml with proper parameters
+            pom {
+                project {
+                    packaging 'aar'
+                    name project.name
+                    description "Predefined banner for PubNative's Android Library"
+                    url "http://www.pubnative.net"
+                    licenses {
+                        license {
+                            name "MIT"
+                            url "https://opensource.org/licenses/MIT"
+                        }
                     }
-                }
-                developers {
-                    developer {
-                        id "cerberillo"
-                        name "David Martin"
-                        email "david@martinmacias.com"
+                    developers {
+                        developer {
+                            id "cerberillo"
+                            name "David Martin"
+                            email "david@martinmacias.com"
+                        }
                     }
-                }
-                scm {
-                    connection "${project.property("repositoryURL")}.git"
-                    developerConnection "${project.property("repositoryURL")}.git"
-                    url project.property("repositoryURL")
+                    scm {
+                        connection "${global_repository}.git"
+                        developerConnection "${global_repository}.git"
+                        url global_repository
+                    }
                 }
             }
         }
     }
-}
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-}
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.rootProject.files(android.getBootClasspath().join(File.pathSeparator))
-    options.memberLevel = JavadocMemberLevel.PUBLIC
-}
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-artifacts {
-    archives javadocJar
-    archives sourcesJar
-}
-bintray {
-    user = System.getenv("BINTRAY_USER")
-    key = System.getenv("BINTRAY_API_KEY")
-    pkg {
-        configurations = ['archives']
-        userOrg = 'pubnative'
-        repo = 'maven'
-        name = project.name
-        version {
-            name = project.version?:"BETA"
-            vcsTag = project.version?:"BETA"
+    task sourcesJar(type: Jar) {
+        from android.sourceSets.main.java.srcDirs
+        classifier = 'sources'
+    }
+    task javadoc(type: Javadoc) {
+        source = android.sourceSets.main.java.srcDirs
+        classpath += project.rootProject.files(android.getBootClasspath().join(File.pathSeparator))
+        options.memberLevel = JavadocMemberLevel.PUBLIC
+    }
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+    artifacts {
+        archives javadocJar
+        archives sourcesJar
+    }
+    bintray {
+        user = System.getenv("BINTRAY_USER")
+        key = System.getenv("BINTRAY_API_KEY")
+        pkg {
+            configurations = ['archives']
+            userOrg = 'pubnative'
+            repo = 'maven'
+            name = project.name
+            version {
+                name = project.version ?: "BETA"
+                vcsTag = project.version ?: "BETA"
+            }
         }
     }
-}
 
 //==================================================================================================
 // JAR
 //==================================================================================================
-if (System.getenv("CIRCLECI")) {
     task createJar(type: Copy) {
         from('build/intermediates/bundles/release/')
         into("${System.getenv("CIRCLE_ARTIFACTS")}/")

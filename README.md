@@ -1,6 +1,8 @@
 ![ScreenShot](PNLogo.png)
 
-[![Circle CI](https://circleci.com/gh/pubnative/pubnative-android-library.svg?style=shield)](https://circleci.com/gh/pubnative/pubnative-android-library) ![License](https://img.shields.io/badge/license-MIT-lightgrey.svg) [![Coverage Status](https://coveralls.io/repos/github/pubnative/pubnative-android-library/badge.svg?branch=code_coverage_configuration)](https://coveralls.io/github/pubnative/pubnative-android-library?branch=code_coverage_configuration)
+![Circle CI](https://circleci.com/gh/pubnative/pubnative-android-library-private.svg?style=shield) ![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)
+
+<!-- [![Coverage Status](https://coveralls.io/repos/github/pubnative/pubnative-android-library/badge.svg?branch=code_coverage_configuration)](https://coveralls.io/github/pubnative/pubnative-android-library?branch=code_coverage_configuration) -->
 
 PubNative is an API-based publisher platform dedicated to native advertising which does not require the integration of an Library.
 
@@ -61,7 +63,7 @@ Optionally but not necessary to improve user targeting:
 Add the following line to your module dependencies
 
 ```
-compile 'net.pubnative:library:2.3.2'
+compile 'net.pubnative:library:2.3.4'
 ```
 
 <a name="install_manual"></a>

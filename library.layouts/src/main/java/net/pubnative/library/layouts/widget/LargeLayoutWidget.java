@@ -29,7 +29,6 @@ public class LargeLayoutWidget extends BaseLayoutWidget
 
     private static final String TAG = LargeLayoutWidget.class.getSimpleName();
 
-    private LayoutInflater              mInflater;
     private TextView                    mTitle;
     private TextView                    mDescription;
     private ImageView                   mIcon;
@@ -49,8 +48,8 @@ public class LargeLayoutWidget extends BaseLayoutWidget
     private boolean                     mIsShown;
     private Width                       mWidth;
     private WindowManager               mWindowManager;
-    private LayoutParams                mLayoutParams;
     private boolean                     mIsVideoPlaying;
+    private boolean                     mIsAlreadyShown;
 
     public LargeLayoutWidget(Context context) {
         super(context);
@@ -70,9 +69,8 @@ public class LargeLayoutWidget extends BaseLayoutWidget
     private void initialise(Context context){
 
         Log.v(TAG, "initialise");
-        mInflater = LayoutInflater.from(context);
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        mContainer = mInflater.inflate(R.layout.pubnative_layout_large, this, true);
+        mContainer = LayoutInflater.from(context).inflate(R.layout.pubnative_layout_large, this, true);
         mTitle = (TextView) mContainer.findViewById(R.id.tv_title);
         mDescription = (TextView) mContainer.findViewById(R.id.tv_description);
         mRating = (RatingBar) mContainer.findViewById(R.id.rb_rating);
@@ -86,8 +84,8 @@ public class LargeLayoutWidget extends BaseLayoutWidget
         mPlayer = (VASTPlayer) mContainer.findViewById(R.id.player);
         mPlayer.setListener(this);
 
-        mLayoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        mLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+        LayoutParams layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
         mFullScreenLayout = new RelativeLayout(context) {
 
             @Override
@@ -105,12 +103,12 @@ public class LargeLayoutWidget extends BaseLayoutWidget
             protected void onWindowVisibilityChanged(int visibility) {
 
                 Log.v(TAG, "onWindowVisibilityChanged");
-                if (visibility != View.VISIBLE) {
+                if (visibility != View.VISIBLE && mAdModel != null && mAdModel.getAssetGroupId() != 15) {
                     hide();
                 }
             }
         };
-        mFullScreenLayout.addView(mContainer, mLayoutParams);
+        mFullScreenLayout.addView(mContainer, layoutParams);
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams();
         params.width = WindowManager.LayoutParams.MATCH_PARENT;
@@ -278,6 +276,7 @@ public class LargeLayoutWidget extends BaseLayoutWidget
         if (mVASTModel != null) {
             if (mIsVideoPlaying) {
                 mPlayer.stop();
+                mIsVideoPlaying = false;
             }
             mPlayer.destroy();
         }
@@ -301,9 +300,11 @@ public class LargeLayoutWidget extends BaseLayoutWidget
     public void onVASTPlayerLoadFinish() {
 
         Log.v(TAG, "onVASTPlayerLoadFinish");
-        mPlayer.setVisibility(VISIBLE);
-        mPlayer.play();
-        mIsVideoPlaying = true;
+        if(!mIsAlreadyShown) {
+            mPlayer.setVisibility(VISIBLE);
+            mPlayer.play();
+            mIsVideoPlaying = true;
+        }
     }
 
     @Override
@@ -319,21 +320,23 @@ public class LargeLayoutWidget extends BaseLayoutWidget
     public void onVASTPlayerPlaybackStart() {
 
         Log.v(TAG, "onVASTPlayerPlaybackStart");
+        mIsAlreadyShown = true;
     }
 
     @Override
     public void onVASTPlayerPlaybackFinish() {
 
         Log.v(TAG, "onVASTPlayerPlaybackFinish");
-        mPlayer.stop();
-        mIsVideoPlaying = false;
+        hide();
     }
 
     @Override
     public void onVASTPlayerOpenOffer() {
 
         Log.v(TAG, "onVASTPlayerOpenOffer");
+        mIsAlreadyShown = true;
         invokeClick();
-        destroy();
+        mPlayer.pause();
+        mIsVideoPlaying = false;
     }
 }

@@ -44,6 +44,7 @@ import net.pubnative.library.tracking.PubnativeImpressionManager;
 import net.pubnative.library.tracking.PubnativeImpressionTracker;
 import net.pubnative.library.tracking.PubnativeTrackingManager;
 import net.pubnative.library.utils.SystemUtils;
+import net.pubnative.library.widget.PubnativeContentInfoWidget;
 import net.pubnative.library.widget.PubnativeWebView;
 
 import java.io.Serializable;
@@ -55,26 +56,30 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
                                          URLDriller.Listener,
                                          Serializable {
 
-    private static      String                TAG                         = PubnativeAdModel.class.getSimpleName();
+    private static String TAG = PubnativeAdModel.class.getSimpleName();
+
+    private static final String                DATA_CONTENTINFO_LINK_KEY   = "link";
+    private static final String                DATA_CONTENTINFO_ICON_KEY   = "icon";
+    private static final String                DATA_TRACKING_KEY           = "tracking";
     //Generic Fields
-    protected transient Listener              mListener                   = null;
-    protected           Context               mContext                    = null;
-    protected           PubnativeAPIV3AdModel mData                       = null;
-    protected           List<String>          mUsedAssets                 = null;
-    protected           UUID                  mUUID                       = null;
+    protected transient  Listener              mListener                   = null;
+    protected            Context               mContext                    = null;
+    protected            PubnativeAPIV3AdModel mData                       = null;
+    protected            List<String>          mUsedAssets                 = null;
+    protected            UUID                  mUUID                       = null;
     // Click
-    protected           boolean               mIsWaitingForClickCache     = false;
-    protected           boolean               mIsClickLoaderEnabled       = true;
-    protected           boolean               mIsClickInBackgroundEnabled = true;
-    protected           boolean               mIsClickCachingEnabled      = false;
-    protected           boolean               mIsClickPreparing           = false;
-    protected           String                mClickFinalURL              = null;
+    protected            boolean               mIsWaitingForClickCache     = false;
+    protected            boolean               mIsClickLoaderEnabled       = true;
+    protected            boolean               mIsClickInBackgroundEnabled = true;
+    protected            boolean               mIsClickCachingEnabled      = false;
+    protected            boolean               mIsClickPreparing           = false;
+    protected            String                mClickFinalURL              = null;
     //Tracking
-    private transient   boolean               mIsImpressionConfirmed      = false;
-    private transient   View                  mClickableView              = null;
-    private transient   View                  mAdView                     = null;
+    private transient    boolean               mIsImpressionConfirmed      = false;
+    private transient    View                  mClickableView              = null;
+    private transient    View                  mAdView                     = null;
     //Loading View
-    private transient   RelativeLayout        loadingView                 = null;
+    private transient    RelativeLayout        loadingView                 = null;
 
     //==============================================================================================
     // Listener
@@ -159,7 +164,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         } else {
             result = mData.getAsset(asset);
             if (result != null) {
-                recordAsset(result.getStringField("tracking"));
+                recordAsset(result.getStringField(DATA_TRACKING_KEY));
             }
         }
         return result;
@@ -277,7 +282,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
      * Gets url of the assets (html banner page, standard banner etc.)
      *
      * @param asset asset name for which url requested.
-     * @return      valid String with the url value, null if not present.
+     * @return valid String with the url value, null if not present.
      */
     public String getAssetUrl(String asset) {
 
@@ -295,7 +300,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
      *
      * @return int value with the id of the asset group ad, 0 if not present
      */
-    public int getAssetGroupId(){
+    public int getAssetGroupId() {
 
         Log.v(TAG, "getAssetGroupId");
         int result = 0;
@@ -307,7 +312,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
         return result;
     }
 
-     /**
+    /**
      * Gets the click url of the ad
      *
      * @return String value with the url of the click, null if not present
@@ -344,41 +349,36 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
     }
 
     /**
-     * Gets the AdChoices click link of the ad
+     * Gets content info view
      *
-     * @return valid String with the link value, null if not present
+     * @param context Valid context
+     * @return View containing content info
      */
-    public String getContentInfoLink() {
-        Log.v(TAG, "getContentInfoLink");
-        String result = null;
+    public View getContentInfo(Context context) {
+        View result = null;
         PubnativeAPIV3DataModel data = getMeta(PubnativeMeta.CONTENT_INFO);
-        if (data != null) {
-            result = data.getStringField("link");
-        }
-        return result;
-    }
-
-    /**
-     * Gets the AdChoices icon url of the ad
-     *
-     * @return valid String with the url value, null if not present
-     */
-    public String getContentInfoIconUrl() {
-        Log.v(TAG, "getContentInfoIconUrl");
-        String result = null;
-        PubnativeAPIV3DataModel data = getMeta(PubnativeMeta.CONTENT_INFO);
-        if (data != null) {
-            result = data.getStringField("icon");
-        }
-        return result;
-    }
-
-    public String getContentInfoText() {
-        Log.v(TAG, "getContentInfoText");
-        String result = null;
-        PubnativeAPIV3DataModel data = getMeta(PubnativeMeta.CONTENT_INFO);
-        if (data != null) {
-            result = data.getText();
+        if (context == null) {
+            Log.e(TAG, "getContentInfo - not a valid context");
+        } else if (data == null) {
+            Log.e(TAG, "getContentInfo - contentInfo data not found");
+        } else if (TextUtils.isEmpty(data.getStringField(DATA_CONTENTINFO_ICON_KEY))) {
+            Log.e(TAG, "getContentInfo - contentInfo icon not found");
+        } else if (TextUtils.isEmpty(data.getStringField(DATA_CONTENTINFO_LINK_KEY))) {
+            Log.e(TAG, "getContentInfo - contentInfo link not found");
+        } else if (TextUtils.isEmpty(data.getText())) {
+            Log.e(TAG, "getContentInfo - contentInfo text not found");
+        } else {
+            final PubnativeContentInfoWidget widget = new PubnativeContentInfoWidget(context);
+            widget.setIconUrl(data.getStringField(DATA_CONTENTINFO_ICON_KEY));
+            widget.setIconClickUrl(data.getStringField(DATA_CONTENTINFO_LINK_KEY));
+            widget.setContextText(data.getText());
+            widget.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    widget.openLayout();
+                }
+            });
+            result = widget;
         }
         return result;
     }
@@ -527,7 +527,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
 
     protected void prepareClickURL() {
 
-        if (isRevenueModelCPA() && mIsClickCachingEnabled && mClickFinalURL== null && !mIsClickPreparing) {
+        if (isRevenueModelCPA() && mIsClickCachingEnabled && mClickFinalURL == null && !mIsClickPreparing) {
 
             mIsClickPreparing = true;
             mUUID = UUID.randomUUID();
@@ -659,9 +659,9 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
                     confirmClickBeacons(view.getContext());
 
                     if (mIsClickInBackgroundEnabled) {
-                        
+
                         if (mIsClickCachingEnabled) {
-                            
+
                             if (mClickFinalURL == null) {
                                 mIsWaitingForClickCache = true;
                             } else {

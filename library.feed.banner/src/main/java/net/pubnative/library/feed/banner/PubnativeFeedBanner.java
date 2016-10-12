@@ -1,8 +1,7 @@
 package net.pubnative.library.feed.banner;
 
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
+import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -15,13 +14,10 @@ import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
-
 import net.pubnative.library.request.PubnativeAsset;
 import net.pubnative.library.request.PubnativeRequest;
 import net.pubnative.library.request.model.PubnativeAdModel;
-import net.pubnative.library.widget.PubnativeContentInfoWidget;
+import net.pubnative.library.utils.ImageDownloader;
 
 import java.util.List;
 
@@ -36,18 +32,17 @@ public class PubnativeFeedBanner implements PubnativeRequest.Listener, Pubnative
     protected boolean                      mIsCoppaModeEnabled;
     protected Handler                      mHandler;
     protected PubnativeAdModel             mAdModel;
-
     // InFeed Banner view
-    protected RelativeLayout             mInFeedBannerView;
-    protected View                       mContainer;
-    protected View                       mLoader;
-    protected TextView                   mTitle;
-    protected TextView                   mDescription;
-    protected ImageView                  mIconImage;
-    protected ImageView                  mBannerImage;
-    protected PubnativeContentInfoWidget mContentInfo;
-    protected Button                     mCallToAction;
-    protected RatingBar                  mRating;
+    protected RelativeLayout               mInFeedBannerView;
+    protected View                         mContainer;
+    protected View                         mLoader;
+    protected TextView                     mTitle;
+    protected TextView                     mDescription;
+    protected ImageView                    mIconImage;
+    protected ImageView                    mBannerImage;
+    protected View                         mContentInfo;
+    protected Button                       mCallToAction;
+    protected RatingBar                    mRating;
 
     /**
      * Interface for callbacks related to the in-feed banner
@@ -218,7 +213,6 @@ public class PubnativeFeedBanner implements PubnativeRequest.Listener, Pubnative
             mIconImage = (ImageView) mInFeedBannerView.findViewById(R.id.pubnative_feed_banner_iconImage);
             mBannerImage = (ImageView) mInFeedBannerView.findViewById(R.id.pubnative_feed_banner_bannerImage);
             mCallToAction = (Button) mInFeedBannerView.findViewById(R.id.pubnative_feed_banner_button);
-            mContentInfo = (PubnativeContentInfoWidget) mInFeedBannerView.findViewById(R.id.pubnative_content_info);
         }
     }
 
@@ -238,7 +232,6 @@ public class PubnativeFeedBanner implements PubnativeRequest.Listener, Pubnative
             }
         });
     }
-
 
     protected void invokeLoadFail(final Exception exception) {
 
@@ -284,7 +277,6 @@ public class PubnativeFeedBanner implements PubnativeRequest.Listener, Pubnative
         });
     }
 
-
     //==============================================================================================
     // Callbacks
     //==============================================================================================
@@ -316,44 +308,41 @@ public class PubnativeFeedBanner implements PubnativeRequest.Listener, Pubnative
             mRating.setVisibility(View.GONE);
         }
 
-        Picasso.with(mContext)
-               .load(mAdModel.getIconUrl())
-               .into(mIconImage, new Callback() {
-
-                   @Override
-                   public void onSuccess() {
-
-                       Picasso.with(mContext)
-                              .load(mAdModel.getBannerUrl())
-                              .into(mBannerImage, new Callback() {
-
-                                  @Override
-                                  public void onSuccess() {
-                                      invokeLoadFinish();
-                                  }
-
-                                  @Override
-                                  public void onError() {
-                                      invokeLoadFail(new Exception("Banner loading error"));
-                                  }
-                              });
-                   }
-
-                   @Override
-                   public void onError() {
-                       invokeLoadFail(new Exception("Icon loading error"));
-                   }
-               });
-
-        mContentInfo.setIconUrl(mAdModel.getContentInfoIconUrl());
-        mContentInfo.setIconClickUrl(mAdModel.getContentInfoLink());
-        mContentInfo.setContextText(mAdModel.getContentInfoText());
-        mContentInfo.setOnClickListener(new View.OnClickListener() {
+        new ImageDownloader().load(mAdModel.getIconUrl(), new ImageDownloader.Listener() {
             @Override
-            public void onClick(View view) {
-                mContentInfo.openLayout();
+            public void onImageLoad(String url, Bitmap bitmap) {
+                mIconImage.setImageBitmap(bitmap);
+                new ImageDownloader().load(mAdModel.getBannerUrl(), new ImageDownloader.Listener() {
+                    @Override
+                    public void onImageLoad(String url, Bitmap bitmap) {
+                        mBannerImage.setImageBitmap(bitmap);
+                        invokeLoadFinish();
+                    }
+
+                    @Override
+                    public void onImageFailed(String url, Exception ex) {
+                        invokeLoadFail(new Exception("Banner loading error"));
+                    }
+                });
+            }
+
+            @Override
+            public void onImageFailed(String url, Exception ex) {
+                invokeLoadFail(new Exception("Icon loading error"));
             }
         });
+
+        // remove content info if already exist
+        if(mContentInfo != null) {
+            mInFeedBannerView.removeView(mContentInfo);
+        }
+        mContentInfo = mAdModel.getContentInfo(mContext);
+        if(mContentInfo != null) {
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+            params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            mInFeedBannerView.addView(mContentInfo, params);
+        }
     }
 
     @Override

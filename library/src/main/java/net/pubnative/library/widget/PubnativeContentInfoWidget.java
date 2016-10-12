@@ -2,6 +2,7 @@ package net.pubnative.library.widget;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,11 +13,10 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
-
 import net.pubnative.library.R;
+import net.pubnative.library.utils.ImageDownloader;
 
-public class PubnativeContentInfoWidget extends RelativeLayout {
+public class PubnativeContentInfoWidget extends RelativeLayout implements View.OnClickListener {
 
     private static final String TAG = PubnativeContentInfoWidget.class.getSimpleName();
 
@@ -66,7 +66,17 @@ public class PubnativeContentInfoWidget extends RelativeLayout {
     }
 
     public void setIconUrl(String iconUrl) {
-        Picasso.with(getContext()).load(iconUrl).into(mContentInfoIcon);
+        new ImageDownloader().load(iconUrl, new ImageDownloader.Listener() {
+            @Override
+            public void onImageLoad(String url, Bitmap bitmap) {
+                mContentInfoIcon.setImageBitmap(bitmap);
+            }
+
+            @Override
+            public void onImageFailed(String url, Exception ex) {
+
+            }
+        });
     }
 
     public void setIconClickUrl(final String iconClickUrl) {
@@ -84,5 +94,10 @@ public class PubnativeContentInfoWidget extends RelativeLayout {
         if (text != null && !text.isEmpty()) {
             mContentInfoText.setText(text);
         }
+    }
+
+    @Override
+    public void onClick(View v) {
+        openLayout();
     }
 }

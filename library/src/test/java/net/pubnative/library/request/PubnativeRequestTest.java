@@ -25,6 +25,7 @@ package net.pubnative.library.request;
 
 import android.content.Context;
 
+import net.pubnative.AdvertisingIdClient;
 import net.pubnative.library.BuildConfig;
 import net.pubnative.library.PubnativeTestUtils;
 import net.pubnative.library.network.PubnativeHttpRequest;
@@ -44,9 +45,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class,
@@ -146,20 +149,35 @@ public class PubnativeRequestTest {
         PubnativeRequest.Listener listener = spy(PubnativeRequest.Listener.class);
         PubnativeRequest request = spy(PubnativeRequest.class);
         request.mListener = listener;
-        request.setParameter(PubnativeRequest.Parameters.ANDROID_ADVERTISER_ID, "test");
         request.start(this.applicationContext, listener);
-        verify(request, times(1)).setDefaultParameters();
-        verify(request, times(1)).sendNetworkRequest();
+        verify(request, times(1)).fillDefaultParameters();
     }
 
     @Test
-    public void testStartWithNullContextFails() {
+    public void test_start_withNullContext_pass() {
 
         PubnativeRequest.Listener listener = mock(PubnativeRequest.Listener.class);
         PubnativeRequest pubnativeRequest = spy(PubnativeRequest.class);
         pubnativeRequest.setParameter(PubnativeRequest.Parameters.ANDROID_ADVERTISER_ID, "test");
         pubnativeRequest.start(null, listener);
-        verify(pubnativeRequest, times(1)).invokeOnFail(any(Exception.class));
+    }
+
+    @Test
+    public void test_start_withNullListener_pass() {
+
+        PubnativeRequest pubnativeRequest = spy(PubnativeRequest.class);
+        pubnativeRequest.setParameter(PubnativeRequest.Parameters.ANDROID_ADVERTISER_ID, "test");
+        pubnativeRequest.start(RuntimeEnvironment.application.getApplicationContext(), null);
+    }
+
+    @Test
+    public void test_start_withRunningRequest_pass() {
+
+        PubnativeRequest.Listener listener = mock(PubnativeRequest.Listener.class);
+        PubnativeRequest pubnativeRequest = spy(PubnativeRequest.class);
+        pubnativeRequest.setParameter(PubnativeRequest.Parameters.ANDROID_ADVERTISER_ID, "test");
+        pubnativeRequest.mIsRunning = true;
+        pubnativeRequest.start(RuntimeEnvironment.application.getApplicationContext(), listener);
     }
 
     @Test
@@ -167,7 +185,7 @@ public class PubnativeRequestTest {
 
         PubnativeRequest request = spy(PubnativeRequest.class);
         request.mContext = this.applicationContext;
-        request.setDefaultParameters();
+        request.fillDefaultParameters();
         assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.OS)).isTrue();
         assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.OS_VERSION)).isTrue();
         assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.DEVICE_MODEL)).isTrue();
@@ -237,11 +255,7 @@ public class PubnativeRequestTest {
         PubnativeRequest request = spy(PubnativeRequest.class);
         request.mContext = this.applicationContext;
         request.setCoppaMode(true);
-        request.setDefaultParameters();
-        assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.LAT)).isFalse();
-        assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.LONG)).isFalse();
-        assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.ANDROID_ADVERTISER_ID)).isFalse();
-        assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.ANDROID_ADVERTISER_ID_MD5)).isFalse();
-        assertThat(request.mRequestParameters.containsKey(PubnativeRequest.Parameters.ANDROID_ADVERTISER_ID_SHA1)).isFalse();
+        request.fillDefaultParameters();
+        verify(request, never()).setAdvertisingID(any(AdvertisingIdClient.AdInfo.class));
     }
 }

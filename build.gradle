@@ -11,6 +11,27 @@ task projectInfo << {
     println ""
 }
 
+subprojects {
+    version="2.3.4"
+    group="net.pubnative"
+
+    // CLASSPATH
+    ext.classpath_android = "com.android.tools.build:gradle:2.2.0"
+    ext.classpath_bintray = 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+    ext.classpath_maven = 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+    ext.classpath_cobertura = 'net.saliman:gradle-cobertura-plugin:2.3.1'
+    ext.classpath_coveralls = 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.6.3'
+
+    // ANDROID
+    ext.android_minSdkVersion = 10
+    ext.android_compileSdkVersion = 23
+    ext.android_targetSdkVersion = 23
+    ext.android_buildToolsVersion = '23.0.2'
+
+    // BINTRAY
+    ext.global_repository = "https://github.com/pubnative/pubnative-android-library"
+}
+
 allprojects {
     repositories {
         jcenter()

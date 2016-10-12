@@ -25,8 +25,12 @@ package net.pubnative.library.request;
 
 import android.content.Context;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -38,13 +42,9 @@ import net.pubnative.library.request.model.PubnativeAdModel;
 import net.pubnative.library.request.model.api.PubnativeAPIV3AdModel;
 import net.pubnative.library.request.model.api.PubnativeAPIV3ResponseModel;
 import net.pubnative.library.utils.Crypto;
-import net.pubnative.library.utils.SystemUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -198,23 +198,45 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
     public void start(Context context, Listener listener) {
 
         Log.v(TAG, "start");
+
         if (listener == null) {
-            Log.e(TAG, "start - Request started without listener, dropping call");
+            Log.w(TAG, "start - listener is null and required, dropping call");
+        } else if (context == null) {
+            Log.w(TAG, "start - context is null and required, dropping call");
+        } else if (mIsRunning) {
+            Log.w(TAG, "start - this request is already running, dropping the call");
         } else {
+            mIsRunning = true;
             mListener = listener;
-            if (context == null) {
-                invokeOnFail(new IllegalArgumentException("PubnativeRequest - Error: context is null"));
-            } else if (mIsRunning) {
-                Log.w(TAG, "PubnativeRequest - this request is already running, dropping the call");
+            mContext = context;
+
+            fillDefaultParameters();
+
+            if (isCoppaModeEnabled()) {
+
+                setAdvertisingID(null);
+                doRequest();
+
             } else {
-                mIsRunning = true;
-                mContext = context;
-                setDefaultParameters();
-                if (!mRequestParameters.containsKey(Parameters.ANDROID_ADVERTISER_ID)) {
-                    AdvertisingIdClient.getAdvertisingId(mContext, this);
-                } else {
-                    sendNetworkRequest();
-                }
+
+                // 1. Async Advertising ID request
+                // 2. doRequest
+                AdvertisingIdClient.getAdvertisingId(mContext, new AdvertisingIdClient.Listener(){
+
+                    @Override
+                    public void onAdvertisingIdClientFinish(AdvertisingIdClient.AdInfo adInfo) {
+
+                        setAdvertisingID(adInfo);
+                        doRequest();
+                    }
+
+                    @Override
+                    public void onAdvertisingIdClientFail(Exception exception) {
+
+                        setAdvertisingID(null);
+                        doRequest();
+                    }
+                });
             }
         }
     }
@@ -255,53 +277,36 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
     // Private
     //==============================================================================================
 
-    protected void setDefaultParameters() {
+    protected void fillDefaultParameters() {
 
-        Log.v(TAG, "setDefaultParameters");
-        if (!mRequestParameters.containsKey(Parameters.ZONE_ID)) {
-            mRequestParameters.put(Parameters.ZONE_ID, "1");
-        }
-        if (!mRequestParameters.containsKey(Parameters.OS)) {
-            mRequestParameters.put(Parameters.OS, "android");
-        }
-        if (!mRequestParameters.containsKey(Parameters.DEVICE_MODEL)) {
-            mRequestParameters.put(Parameters.DEVICE_MODEL, Build.MODEL);
-        }
-        if (!mRequestParameters.containsKey(Parameters.OS_VERSION)) {
-            mRequestParameters.put(Parameters.OS_VERSION, Build.VERSION.RELEASE);
-        }
-        if (!mRequestParameters.containsKey(Parameters.LOCALE)) {
-            mRequestParameters.put(Parameters.LOCALE, Locale.getDefault().getLanguage());
-        }
-        // If none of lat and long is sent by the client then only we add default values. We can't alter client's parameters.
-        if (!mRequestParameters.containsKey(Parameters.LAT) &&
-            !mRequestParameters.containsKey(Parameters.LONG) && !isCoppaModeEnabled()) {
-            Location location = SystemUtils.getLastLocation(mContext);
-            if (location != null) {
-                mRequestParameters.put(Parameters.LAT, String.valueOf(location.getLatitude()));
-                mRequestParameters.put(Parameters.LONG, String.valueOf(location.getLongitude()));
-            }
-        }
-        // If no asset has been set explicitly, add them here to get asset fields in response
-        if (!mRequestParameters.containsKey(Parameters.ASSET_LAYOUT) && !mRequestParameters.containsKey(Parameters.ASSET_FIELDS)) {
-            String[] assets = new String[]{
+        Log.v(TAG, "startRequest");
+
+        mRequestParameters.put(Parameters.OS, "android");
+        mRequestParameters.put(Parameters.DEVICE_MODEL, Build.MODEL);
+        mRequestParameters.put(Parameters.OS_VERSION, Build.VERSION.RELEASE);
+        mRequestParameters.put(Parameters.LOCALE, Locale.getDefault().getLanguage());
+
+        if (!mRequestParameters.containsKey(Parameters.ASSET_LAYOUT) &&
+            !mRequestParameters.containsKey(Parameters.ASSET_FIELDS)) {
+
+            setParameterArray(PubnativeRequest.Parameters.ASSET_FIELDS, new String[]{
                     PubnativeAsset.TITLE,
                     PubnativeAsset.DESCRIPTION,
                     PubnativeAsset.ICON,
                     PubnativeAsset.BANNER,
                     PubnativeAsset.CALL_TO_ACTION,
                     PubnativeAsset.RATING
-            };
-            setParameterArray(PubnativeRequest.Parameters.ASSET_FIELDS, assets);
+            });
         }
 
-        if (!mRequestParameters.containsKey(Parameters.META_FIELDS)) {
-            String[] metas = new String[]{
-                    PubnativeMeta.REVENUE_MODEL,
-                    PubnativeMeta.CONTENT_INFO
-            };
-            setParameterArray(PubnativeRequest.Parameters.META_FIELDS, metas);
+        String metaString = mRequestParameters.get(Parameters.META_FIELDS);
+        List<String> metaList = new ArrayList<String>();
+        if (metaString != null) {
+            Arrays.asList(TextUtils.split(metaString, ","));
         }
+        metaList.add(PubnativeMeta.REVENUE_MODEL);
+        metaList.add(PubnativeMeta.CONTENT_INFO);
+        setParameterArray(Parameters.META_FIELDS, metaList.toArray(new String[0]));
     }
 
     protected String getRequestURL() {
@@ -319,13 +324,22 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
         return uriBuilder.build().toString();
     }
 
-    /**
-     * This function will create and send the network request.
-     * It consider that <code>type</code> is already provided so that it can prepare the request URL.
-     */
-    protected void sendNetworkRequest() {
 
-        Log.v(TAG, "sendNetworkRequest");
+    protected void setAdvertisingID(AdvertisingIdClient.AdInfo adInfo) {
+
+        if (adInfo == null || adInfo.isLimitAdTrackingEnabled()) {
+            mRequestParameters.put(Parameters.NO_USER_ID, "1");
+        } else {
+            String advertisingId = adInfo.getId();
+            mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID, advertisingId);
+            mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID_SHA1, Crypto.sha1(advertisingId));
+            mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID_MD5, Crypto.md5(advertisingId));
+        }
+    }
+
+    protected void doRequest() {
+
+        Log.v(TAG, "doRequest");
         String url = getRequestURL();
         if (url == null) {
             invokeOnFail(new Exception("PubnativeRequest - Error: invalid request URL"));
@@ -447,22 +461,15 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
     public void onAdvertisingIdClientFinish(AdvertisingIdClient.AdInfo adInfo) {
 
         Log.v(TAG, "onAdvertisingIdClientFinish");
-        if (adInfo != null && !adInfo.isLimitAdTrackingEnabled() && !isCoppaModeEnabled()) {
-            String advertisingId = adInfo.getId();
-            mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID, advertisingId);
-            mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID_SHA1, Crypto.sha1(advertisingId));
-            mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID_MD5, Crypto.md5(advertisingId));
-        } else {
-            mRequestParameters.put(Parameters.NO_USER_ID, "1");
-        }
-        sendNetworkRequest();
+        setAdvertisingID(adInfo);
+        doRequest();
     }
 
     @Override
     public void onAdvertisingIdClientFail(Exception exception) {
 
         Log.v(TAG, "onAdvertisingIdClientFail");
-        mRequestParameters.put(Parameters.NO_USER_ID, "1");
-        sendNetworkRequest();
+        setAdvertisingID(null);
+        doRequest();
     }
 }

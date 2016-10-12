@@ -113,26 +113,6 @@
                 android:textColor="@android:color/white"
                 android:textSize="18dp"
                 android:textStyle="bold"/>
-
-            <ImageView
-                android:id="@+id/pubnative_adchoice_icon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginRight="8dp"
-                android:layout_marginTop="8dp"
-                android:paddingLeft="16dp"
-                android:paddingBottom="16dp"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentTop="true"
-                android:visibility="invisible"
-                android:src="@null"/>
-
-            <net.pubnative.library.widget.PubnativeContentInfoWidget
-                android:id="@+id/pubnative_content_info"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentTop="true" />
         </RelativeLayout>
 
     </ScrollView>
