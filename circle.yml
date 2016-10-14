@@ -6,17 +6,8 @@ machine:
       version: oraclejdk8
 
 test:
-  pre:
-    - ./gradlew projectInfo
   override:
-    - ./gradlew clean test
-  post:
-    #   Publish to Fabric if PR
-    - if [ ! -z $CI_PULL_REQUEST ] ; then ./gradlew assembleDebug crashlyticsUploadDistributionDebug ; fi
-    #   Publish to Coveralls
-    #- ./gradlew cobertura coveralls
-
-
+    - ./gradlew clean testDebug
 
 deployment:
   staging:
@@ -24,8 +15,6 @@ deployment:
     commands:
       # Publish to Fabric
       - ./gradlew assembleDebug crashlyticsUploadDistributionDebug
-      # Create JAR with this version
-      - ./gradlew createJar
   production:
     branch: master
     commands:
@@ -34,4 +23,4 @@ deployment:
       # Create JAR with this version
       - ./gradlew createJar
       # Publish to BINTRAY
-      - ./gradlew bintrayUpload
+      - if [ -z $IS_BETA ] ; then ./gradlew bintrayUpload ; fi

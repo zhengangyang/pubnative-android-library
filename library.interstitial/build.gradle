@@ -7,31 +7,23 @@ buildscript {
     }
     dependencies {
         // ANDROID
-        classpath classpath_android
+        classpath 'com.android.tools.build:gradle:2.2.0'
         // BINTRAY
-        classpath classpath_bintray
-        classpath classpath_maven
-        // COVERALLS
-        classpath classpath_cobertura
-        classpath classpath_coveralls
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
     }
-}
-task projectInfo << {
-    println ""
-    println " === ${project.group}:${project.name}:${version} - (${System.getenv("CIRCLE_BUILD_NUM")}) ==="
-    println ""
 }
 //==================================================================================================
 // ANDROID
 //==================================================================================================
 apply plugin: 'com.android.library'
 android {
-    compileSdkVersion android_compileSdkVersion
-    buildToolsVersion android_buildToolsVersion
+    compileSdkVersion 23
+    buildToolsVersion '23.0.2'
 
     defaultConfig {
-        minSdkVersion android_minSdkVersion
-        targetSdkVersion android_targetSdkVersion
+        minSdkVersion 10
+        targetSdkVersion 23
         versionCode System.getenv("CIRCLE_BUILD_NUM") ? System.getenv("CIRCLE_BUILD_NUM").toInteger() : 1
         versionName project.version ?: "BETA"
     }
@@ -55,16 +47,14 @@ dependencies {
     testCompile 'org.mockito:mockito-core:2.1.0'
 }
 
+//==================================================================================================
+// CIRCLE CI
+//==================================================================================================
 if (System.getenv("CIRCLECI")) {
-//==================================================================================================
-// COVERALLS
-//==================================================================================================
-    apply plugin: "net.saliman.cobertura"
-    apply plugin: "com.github.kt3k.coveralls"
-    cobertura.coverageFormats = ['html', 'xml']
-//==================================================================================================
-// BINTRAY
-//==================================================================================================
+
+    //----------------------------------------------------------------------------------------------
+    // BINTRAY
+    //----------------------------------------------------------------------------------------------
     apply plugin: 'com.jfrog.bintray'
     apply plugin: 'com.github.dcendents.android-maven'
     install {
@@ -90,9 +80,9 @@ if (System.getenv("CIRCLECI")) {
                         }
                     }
                     scm {
-                        connection "${global_repository}.git"
-                        developerConnection "${global_repository}.git"
-                        url global_repository
+                        connection "https://github.com/pubnative/pubnative-android-library.git"
+                        developerConnection "https://github.com/pubnative/pubnative-android-library.git"
+                        url "https://github.com/pubnative/pubnative-android-library"
                     }
                 }
             }
@@ -104,7 +94,7 @@ if (System.getenv("CIRCLECI")) {
     }
     task javadoc(type: Javadoc) {
         source = android.sourceSets.main.java.srcDirs
-//    classpath += project.rootProject.files(android.getBootClasspath().join(File.pathSeparator))
+        classpath += project.rootProject.files(android.getBootClasspath().join(File.pathSeparator))
         options.memberLevel = JavadocMemberLevel.PUBLIC
     }
     task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -123,16 +113,16 @@ if (System.getenv("CIRCLECI")) {
             userOrg = 'pubnative'
             repo = 'maven'
             name = project.name
-            version {
-                name = project.version ?: "BETA"
-                vcsTag = project.version ?: "BETA"
+            version{
+                name = project.version
+                vcsTag = project.version
             }
         }
     }
 
-//==================================================================================================
-// JAR
-//==================================================================================================
+    //----------------------------------------------------------------------------------------------
+    // JAR
+    //----------------------------------------------------------------------------------------------
     task createJar(type: Copy) {
         from('build/intermediates/bundles/release/')
         into("${System.getenv("CIRCLE_ARTIFACTS")}/")
