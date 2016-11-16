@@ -1,6 +1,8 @@
 ![ScreenShot](PNLogo.png)
 
-![Circle CI](https://circleci.com/gh/pubnative/pubnative-android-library.svg?style=shield) ![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)
+![Circle CI](https://circleci.com/gh/pubnative/pubnative-android-library-private.svg?style=shield) ![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)
+
+<!-- [![Coverage Status](https://coveralls.io/repos/github/pubnative/pubnative-android-library/badge.svg?branch=code_coverage_configuration)](https://coveralls.io/github/pubnative/pubnative-android-library?branch=code_coverage_configuration) -->
 
 PubNative is an API-based publisher platform dedicated to native advertising which does not require the integration of an Library.
 
@@ -61,7 +63,7 @@ Optionally but not necessary to improve user targeting:
 Add the following line to your module dependencies
 
 ```
-compile 'net.pubnative:library:2.3.5'
+compile 'net.pubnative:library:2.3.6'
 ```
 
 <a name="install_manual"></a>
@@ -190,7 +192,7 @@ There are 2 more methods to mention here:
 
 Add the following line to your module dependencies
 ```
-compile 'net.pubnative:library.interstitial:2.3.5'
+compile 'net.pubnative:library.interstitial:2.3.6'
 ```
 Sample usage
 ```
@@ -207,7 +209,7 @@ interstitial.show();
 
 Add the following line to your module dependencies
 ```
-compile 'net.pubnative:library.banner:2.3.5'
+compile 'net.pubnative:library.banner:2.3.6'
 ```
 Sample usage
 ```
@@ -231,7 +233,7 @@ Banner positions available are
 
 Add the following line to your module dependencies
 ```
-compile 'net.pubnative:library.feed.banner:2.3.5'
+compile 'net.pubnative:library.feed.banner:2.3.6'
 ```
 Sample usage
 ```
@@ -249,7 +251,7 @@ As you can see, you will get a fully created view and you can place it in any pa
 
 Add the following line to your module dependencies
 ```
-compile 'net.pubnative:library.video:2.3.5'
+compile 'net.pubnative:library.video:2.3.6'
 ```
 Sample usage
 ```
@@ -267,7 +269,7 @@ Video will be shown fullscreen.
 
 Add the following line to your module dependencies
 ```
-compile 'net.pubnative:library.feed.video:2.3.5'
+compile 'net.pubnative:library.feed.video:2.3.6'
 ```
 Sample usage
 ```

@@ -24,13 +24,8 @@
 package net.pubnative.library.request;
 
 import android.content.Context;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
-import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -221,7 +216,7 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
 
                 // 1. Async Advertising ID request
                 // 2. doRequest
-                AdvertisingIdClient.getAdvertisingId(mContext, new AdvertisingIdClient.Listener(){
+                AdvertisingIdClient.getAdvertisingId(mContext, new AdvertisingIdClient.Listener() {
 
                     @Override
                     public void onAdvertisingIdClientFinish(AdvertisingIdClient.AdInfo adInfo) {
@@ -361,36 +356,36 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
     protected void processStream(String result) {
 
         Log.v(TAG, "processStream");
+
+        PubnativeAPIV3ResponseModel apiResponseModel = null;
+        Exception parseException = null;
+
         try {
-
-            PubnativeAPIV3ResponseModel apiResponseModel = new Gson().fromJson(result, PubnativeAPIV3ResponseModel.class);
-
-            if (apiResponseModel == null) {
-
-                // PARSE ERROR
-                invokeOnFail(new Exception("PubnativeRequest - Parse error"));
-
-            } else if (PubnativeAPIV3ResponseModel.Status.OK.equals(apiResponseModel.status)) {
-                // STATUS 'OK'
-                List<PubnativeAdModel> resultModels = null;
-                if (apiResponseModel.ads != null) {
-                    for (PubnativeAPIV3AdModel adModel : apiResponseModel.ads) {
-                        if (resultModels == null) {
-                            resultModels = new ArrayList<PubnativeAdModel>();
-                        }
-                        resultModels.add(PubnativeAdModel.create(mContext, adModel));
-                    }
-                }
-                invokeOnSuccess(resultModels);
-
-            } else {
-                // STATUS 'ERROR'
-                invokeOnFail(new Exception("PubnativeRequest - Server error: " + apiResponseModel.error_message));
-            }
-
+            apiResponseModel = new Gson().fromJson(result, PubnativeAPIV3ResponseModel.class);
         } catch (Exception exception) {
+            parseException = exception;
+        }
 
-            invokeOnFail(exception);
+        if (parseException != null) {
+            invokeOnFail(parseException);
+        } else if (apiResponseModel == null) {
+            invokeOnFail(new Exception("PubnativeRequest - Parse error"));
+        } else if (PubnativeAPIV3ResponseModel.Status.OK.equals(apiResponseModel.status)) {
+            // STATUS 'OK'
+            List<PubnativeAdModel> resultModels = null;
+            if (apiResponseModel.ads != null) {
+                for (PubnativeAPIV3AdModel adModel : apiResponseModel.ads) {
+                    if (resultModels == null) {
+                        resultModels = new ArrayList<PubnativeAdModel>();
+                    }
+                    resultModels.add(PubnativeAdModel.create(mContext, adModel));
+                }
+            }
+            invokeOnSuccess(resultModels);
+
+        } else {
+            // STATUS 'ERROR'
+            invokeOnFail(new Exception("PubnativeRequest - Server error: " + apiResponseModel.error_message));
         }
     }
 
@@ -405,6 +400,7 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
         if (mListener != null) {
             mListener.onPubnativeRequestSuccess(this, ads);
         }
+        mListener = null;
     }
 
     protected void invokeOnFail(Exception exception) {
@@ -414,6 +410,7 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
         if (mListener != null) {
             mListener.onPubnativeRequestFailed(this, exception);
         }
+        mListener = null;
     }
 
     //==============================================================================================
