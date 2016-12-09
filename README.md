@@ -63,7 +63,7 @@ Optionally but not necessary to improve user targeting:
 Add the following line to your module dependencies
 
 ```
-compile 'net.pubnative:library:2.3.6'
+compile 'net.pubnative:library:2.3.7'
 ```
 
 <a name="install_manual"></a>
@@ -192,7 +192,7 @@ There are 2 more methods to mention here:
 
 Add the following line to your module dependencies
 ```
-compile 'net.pubnative:library.interstitial:2.3.6'
+compile 'net.pubnative:library.interstitial:2.3.7'
 ```
 Sample usage
 ```
@@ -209,7 +209,7 @@ interstitial.show();
 
 Add the following line to your module dependencies
 ```
-compile 'net.pubnative:library.banner:2.3.6'
+compile 'net.pubnative:library.banner:2.3.7'
 ```
 Sample usage
 ```
@@ -233,7 +233,7 @@ Banner positions available are
 
 Add the following line to your module dependencies
 ```
-compile 'net.pubnative:library.feed.banner:2.3.6'
+compile 'net.pubnative:library.feed.banner:2.3.7'
 ```
 Sample usage
 ```
@@ -251,7 +251,7 @@ As you can see, you will get a fully created view and you can place it in any pa
 
 Add the following line to your module dependencies
 ```
-compile 'net.pubnative:library.video:2.3.6'
+compile 'net.pubnative:library.video:2.3.7'
 ```
 Sample usage
 ```
@@ -269,7 +269,7 @@ Video will be shown fullscreen.
 
 Add the following line to your module dependencies
 ```
-compile 'net.pubnative:library.feed.video:2.3.6'
+compile 'net.pubnative:library.feed.video:2.3.7'
 ```
 Sample usage
 ```

@@ -25,11 +25,11 @@ package net.pubnative.library.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
-
 import java.net.URL;
 
 public class ImageDownloader {
@@ -88,7 +88,20 @@ public class ImageDownloader {
                 Bitmap result = null;
                 try {
                     URL url = new URL(urlString);
-                    result = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                    final BitmapFactory.Options options = new BitmapFactory.Options();
+
+                    // Fill options with data about bitmap only
+                    // without allocating memory.
+                    // decodeStream() will return null.
+                    options.inJustDecodeBounds = true;
+                    BitmapFactory.decodeStream(url.openConnection().getInputStream(), new Rect(), options);
+
+                    // Calculate size of the image depends of free memory of device
+                    options.inSampleSize = calculateInSampleSize(options);
+
+                    // Get image and allocate memory for it.
+                    options.inJustDecodeBounds = false;
+                    result = BitmapFactory.decodeStream(url.openConnection().getInputStream(), null, options);
                 } catch (Exception e) {
                     invokeFail(urlString, e);
                 } finally {
@@ -101,14 +114,14 @@ public class ImageDownloader {
     //==============================================================================================
     // Callback helpers
     //==============================================================================================
-    protected void invokeLoad(final String url, final Bitmap image) {
+    protected void invokeLoad(final String url, final Bitmap bitmap) {
 
         Log.v(TAG, "invokeLoad");
         mHandler.post(new Runnable() {
             @Override
             public void run() {
                 if(mListener != null) {
-                    mListener.onImageLoad(url, image);
+                    mListener.onImageLoad(url, bitmap);
                 }
             }
         });
@@ -125,5 +138,29 @@ public class ImageDownloader {
                 }
             }
         });
+    }
+
+    /**
+     * This method calculates the inSampleSize which create a smaller image than original.
+     * It's needed, because when we try to use decodeStream for the big image BitmapFactory
+     * allocate memory not only for himself but also and for downloaded image and some processed data.
+     * @param options options for {@link android.graphics.BitmapFactory.Options BitmapFactory.Options}
+     * @return int {@link android.graphics.BitmapFactory.Options#inSampleSize inSampleSize} which decoder use to subsample the original image, returning a smaller image to save memory
+     */
+    protected int calculateInSampleSize(BitmapFactory.Options options) {
+
+        Log.v(TAG, "calculateInSampleSize");
+        int bytesPerPixel = 4;
+        int inSampleSize = 1;
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        final int freeMemory = (int) (Runtime.getRuntime().freeMemory());
+        final int pictureSize = width * height * bytesPerPixel;
+
+        if (pictureSize > freeMemory) {
+            inSampleSize = pictureSize / freeMemory;
+        }
+
+        return inSampleSize;
     }
 }
