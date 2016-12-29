@@ -52,7 +52,7 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
 
     @Deprecated
     public final static    String               LEGACY_ZONE_ID     = "1";
-    protected static final String               BASE_URL           = "http://api.pubnative.net/api/v3/native";
+    protected static final String               BASE_URL           = "https://api.pubnative.net/api/v3/native";
     protected              Context              mContext           = null;
     protected              Map<String, String>  mRequestParameters = new HashMap<String, String>();
     protected              Listener             mListener          = null;
