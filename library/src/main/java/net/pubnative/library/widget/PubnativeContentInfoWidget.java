@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -83,9 +84,15 @@ public class PubnativeContentInfoWidget extends RelativeLayout implements View.O
         mContentInfoText.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent openLink = new Intent(Intent.ACTION_VIEW);
-                openLink.setData(Uri.parse(iconClickUrl));
-                view.getContext().startActivity(openLink);
+
+                try {
+                    Intent openLink = new Intent(Intent.ACTION_VIEW);
+                    openLink.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    openLink.setData(Uri.parse(iconClickUrl));
+                    view.getContext().startActivity(openLink);
+                } catch (Exception e) {
+                    Log.e(TAG, "error on click content info text", e);
+                }
             }
         });
     }
