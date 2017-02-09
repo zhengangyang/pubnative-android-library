@@ -61,6 +61,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
     private static final String                DATA_CONTENTINFO_LINK_KEY   = "link";
     private static final String                DATA_CONTENTINFO_ICON_KEY   = "icon";
     private static final String                DATA_TRACKING_KEY           = "tracking";
+    private static final int                   URL_DRILLER_DEPTH           = 15;
     //Generic Fields
     protected transient  Listener              mListener                   = null;
     protected            Context               mContext                    = null;
@@ -79,7 +80,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
     private transient    View                  mClickableView              = null;
     private transient    View                  mAdView                     = null;
     //Loading View
-    private transient    RelativeLayout        loadingView                 = null;
+    private transient    RelativeLayout        mLoadingView                = null;
 
     //==============================================================================================
     // Listener
@@ -533,6 +534,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
             mUUID = UUID.randomUUID();
             String firstReqUrl = getClickUrl() + "&uxc=true&uuid=" + mUUID.toString();
             URLDriller driller = new URLDriller();
+            driller.setDrillSize(URL_DRILLER_DEPTH);
             driller.setListener(new URLDriller.Listener() {
 
                 @Override
@@ -576,6 +578,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
     protected void openCachedClick(Context context) {
 
         URLDriller driller = new URLDriller();
+        driller.setDrillSize(URL_DRILLER_DEPTH);
         driller.setUserAgent(SystemUtils.getWebViewUserAgent(context));
         driller.setListener(PubnativeAdModel.this);
         driller.drill(getClickUrl() + "&cached=true&uuid=" + mUUID.toString());
@@ -670,6 +673,7 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
                         } else {
                             // No CPI offer, so we simply follow redirection and open at the end
                             URLDriller driller = new URLDriller();
+                            driller.setDrillSize(URL_DRILLER_DEPTH);
                             driller.setUserAgent(SystemUtils.getWebViewUserAgent(view.getContext()));
                             driller.setListener(PubnativeAdModel.this);
                             driller.drill(getClickUrl());
@@ -795,10 +799,12 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
     protected void hideLoadingView() {
 
         Log.v(TAG, "hideLoadingView");
-        if (getRootView() == null) {
-            Log.w(TAG, "hideLoadingView - Error: impossible to retrieve root view");
+        if (getLoadingView() == null) {
+            Log.w(TAG, "loading view is still not loaded, thus you cannot hide it");
+        } else if (mLoadingView.getParent() == null){
+            Log.w(TAG, "loading view is still not attached to any view");
         } else {
-            getRootView().removeView(getLoadingView());
+            ((ViewGroup) mLoadingView.getParent()).removeView(mLoadingView);
         }
     }
 
@@ -817,14 +823,14 @@ public class PubnativeAdModel implements PubnativeImpressionTracker.Listener,
     protected RelativeLayout getLoadingView() {
 
         Log.v(TAG, "getLoadingView");
-        if (loadingView == null) {
-            loadingView = new RelativeLayout(mAdView.getContext());
-            loadingView.setGravity(Gravity.CENTER);
-            loadingView.setBackgroundColor(Color.argb(77, 0, 0, 0));
-            loadingView.setClickable(true);
-            loadingView.addView(new ProgressBar(mAdView.getContext()));
+        if (mLoadingView == null) {
+            mLoadingView = new RelativeLayout(mAdView.getContext());
+            mLoadingView.setGravity(Gravity.CENTER);
+            mLoadingView.setBackgroundColor(Color.argb(77, 0, 0, 0));
+            mLoadingView.setClickable(true);
+            mLoadingView.addView(new ProgressBar(mAdView.getContext()));
         }
-        return loadingView;
+        return mLoadingView;
     }
 
     //==============================================================================================
