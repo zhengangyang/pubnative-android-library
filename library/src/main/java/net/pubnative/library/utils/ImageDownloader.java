@@ -30,11 +30,15 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
+
+import java.lang.ref.WeakReference;
 import java.net.URL;
 
 public class ImageDownloader {
 
     private static final String TAG = ImageDownloader.class.getSimpleName();
+
+    private WeakReference<Bitmap> mImage;
 
     private Listener mListener;
     private Handler mHandler;
@@ -85,7 +89,6 @@ public class ImageDownloader {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Bitmap result = null;
                 try {
                     URL url = new URL(urlString);
                     final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -100,12 +103,16 @@ public class ImageDownloader {
                     options.inSampleSize = calculateInSampleSize(options);
 
                     // Get image and allocate memory for it.
+                    // WeakReference using for saving memory here.
                     options.inJustDecodeBounds = false;
-                    result = BitmapFactory.decodeStream(url.openConnection().getInputStream(), null, options);
+                    mImage = new WeakReference<Bitmap>(BitmapFactory.decodeStream(url.openConnection().getInputStream(), null, options));
                 } catch (Exception e) {
                     invokeFail(urlString, e);
+                } catch (OutOfMemoryError error) {
+                    mImage = null;
+                    invokeFail(urlString, new Exception("Out of memory during image downloading"));
                 } finally {
-                    invokeLoad(urlString, result);
+                    invokeLoad(urlString);
                 }
             }
         }).start();
@@ -114,14 +121,14 @@ public class ImageDownloader {
     //==============================================================================================
     // Callback helpers
     //==============================================================================================
-    protected void invokeLoad(final String url, final Bitmap bitmap) {
+    protected void invokeLoad(final String url) {
 
         Log.v(TAG, "invokeLoad");
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                if(mListener != null) {
-                    mListener.onImageLoad(url, bitmap);
+                if(mListener != null && (mImage != null && mImage.get() != null)) {
+                    mListener.onImageLoad(url, mImage.get());
                 }
             }
         });
