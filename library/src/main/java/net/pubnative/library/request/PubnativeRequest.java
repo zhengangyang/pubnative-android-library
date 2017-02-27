@@ -322,10 +322,14 @@ public class PubnativeRequest implements PubnativeHttpRequest.Listener,
 
     protected void setAdvertisingID(AdvertisingIdClient.AdInfo adInfo) {
 
-        if (adInfo == null || adInfo.isLimitAdTrackingEnabled()) {
+        String advertisingId = null;
+        if (adInfo != null && !adInfo.isLimitAdTrackingEnabled()) {
+            advertisingId = adInfo.getId();
+        }
+
+        if (TextUtils.isEmpty(advertisingId)) {
             mRequestParameters.put(Parameters.NO_USER_ID, "1");
         } else {
-            String advertisingId = adInfo.getId();
             mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID, advertisingId);
             mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID_SHA1, Crypto.sha1(advertisingId));
             mRequestParameters.put(Parameters.ANDROID_ADVERTISER_ID_MD5, Crypto.md5(advertisingId));
