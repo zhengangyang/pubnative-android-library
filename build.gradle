@@ -12,7 +12,7 @@ task projectInfo << {
 }
 
 subprojects {
-    version="2.3.12"
+    version="2.3.13"
     group="net.pubnative"
 }
 

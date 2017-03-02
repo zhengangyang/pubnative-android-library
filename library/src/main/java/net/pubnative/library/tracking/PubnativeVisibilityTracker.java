@@ -23,7 +23,6 @@
 
 package net.pubnative.library.tracking;
 
-import android.app.Activity;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.util.Log;
@@ -90,9 +89,8 @@ public class PubnativeVisibilityTracker {
     public void addView(View view, double minVisibilityPercent) {
 
         if (mDeviceView == null) {
-            View decorView = ((Activity) view.getContext()).getWindow().getDecorView();
-            mDeviceView = new WeakReference<View>(decorView);
-            ViewTreeObserver observer = decorView.getViewTreeObserver();
+            mDeviceView = new WeakReference<View>(view);
+            ViewTreeObserver observer = view.getViewTreeObserver();
             if (observer.isAlive()) {
                 observer.addOnPreDrawListener(mOnPreDrawListener);
             } else {
@@ -241,13 +239,13 @@ public class PubnativeVisibilityTracker {
             if (view != null
                 && view.isShown() // This is specially useful to ensure visibility in lists
                 && view.getParent() != null
-                && view.getGlobalVisibleRect(mVisibleRect)) {
+                && view.getLocalVisibleRect(mVisibleRect)) {
 
                 Log.i(TAG, "tracking view at: " + System.currentTimeMillis());
 
-                long visibleArea = (long) mVisibleRect.height() * mVisibleRect.width();
-                long totalArea = (long) view.getHeight() * view.getWidth();
-                double percentVisible = (double) visibleArea / (double) totalArea;
+                float visibleArea = mVisibleRect.height() * mVisibleRect.width();
+                float viewArea = view.getHeight() * view.getWidth();
+                double percentVisible = (double)visibleArea / (double)viewArea;
 
                 result = percentVisible >= item.mMinVisibilityPercent;
             }
