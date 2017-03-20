@@ -48,7 +48,7 @@ public class PubnativeVisibilityTracker {
         @Override
         public boolean onPreDraw() {
 
-            if (mListener.get() == null) {
+            if (mListener == null || mListener.get() == null) {
                 clear();
             } else {
                 scheduleVisibilityCheck();
@@ -222,7 +222,7 @@ public class PubnativeVisibilityTracker {
                 }
             }
 
-            if (mListener.get() != null) {
+            if (mListener != null && mListener.get() != null) {
                 mListener.get().onVisibilityCheck(mVisibleViews, mInvisibleViews);
             }
 

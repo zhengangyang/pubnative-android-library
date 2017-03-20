@@ -52,7 +52,7 @@ public class PubnativeImpressionTracker {
         @Override
         public void onVisibilityCheck(List<View> visibleViews, List<View> invisibleViews) {
 
-            if (mImpressionListener.get() == null) {
+            if (mImpressionListener == null || mImpressionListener.get() == null) {
                 clear();
             } else {
 
@@ -225,7 +225,7 @@ public class PubnativeImpressionTracker {
                     continue;
                 }
 
-                if (mImpressionListener.get() != null) {
+                if (mImpressionListener != null && mImpressionListener.get() != null) {
                     mImpressionListener.get().onImpression(visibleView);
                 }
                 mRemovedViews.add(visibleView);
